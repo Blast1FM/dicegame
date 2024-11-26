@@ -1,5 +1,4 @@
-﻿namespace DiceGame.MasterServer;
-
+﻿namespace DiceGame.Client;
 class Program
 {
     static void Main(string[] args)
