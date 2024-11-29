@@ -1,7 +1,7 @@
 ## Packet Structure
 ## Big endian because the gods said so
 
-LSB                               MSB
+MSB                               LSB
 _____________________________________
 |12345678|12345678|12345678|12345678|
 ◦--------◦--------◦--------◦--------◦

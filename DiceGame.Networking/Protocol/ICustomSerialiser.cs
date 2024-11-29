@@ -1,6 +1,6 @@
 namespace DiceGame.Networking.Protocol;
 
-public interface ICustomSerialiser
+public interface ICustomPacketSerialiser
 {
-    // TODO
+    public HeaderSerialiser HeaderSerialiser {get;set;}
 }
