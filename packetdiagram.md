@@ -12,6 +12,7 @@ ___________________________________________
 
 Octet 1 - Protocol version
 Octet 2 - Split between message type, method and resource identifier
+Octet 3 - Payload length
 
 # Message type
 - 0 - Request
