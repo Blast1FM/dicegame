@@ -1,6 +1,6 @@
 namespace DiceGame.Networking;
 
-public class TCPServer
+public class HHTPServer
 {
     
 }

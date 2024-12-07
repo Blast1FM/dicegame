@@ -1,5 +1,4 @@
 using System.Buffers.Binary;
-using System.Data.SqlTypes;
 
 namespace DiceGame.Networking.Protocol;
 
@@ -16,18 +15,19 @@ public class HeaderSerialiser
         if(!Enum.IsDefined(typeof(PacketHeader), potentialHeader[0])) throw new Exception("Unsupported protocol version");
         ProtocolVersion protocolVersion = (ProtocolVersion)potentialHeader[0];
 
-        int maybeEncoding = (potentialHeader[1] & 0b11000000) >> 6;
-        if(!Enum.IsDefined(typeof(PacketEncoding), maybeEncoding)) throw new Exception("Unsupported packet encoding type");
-        PacketEncoding packetEncoding = (PacketEncoding) maybeEncoding;
+        MessageType messageType = (MessageType)((int)(potentialHeader[1] & 0b10000000)>>7);
 
-        int maybePacketType = potentialHeader[1] & 0b00111111;
-        if(!Enum.IsDefined(typeof(PacketType), maybePacketType)) throw new Exception("Unsupported packet type");
-        PacketType packetType = (PacketType)maybePacketType;
+        uint maybeMethod = (uint)((potentialHeader[1] & 0b01100000) >> 5);
+        if(!Enum.IsDefined(typeof(ProtocolMethod), maybeMethod)) throw new Exception("Unsupported packet encoding type");
+        ProtocolMethod packetMethod = (ProtocolMethod) maybeMethod;
+
+        uint maybeResourceIdentifier = (uint)(potentialHeader[1] & 0b00011111);
+        if(maybeResourceIdentifier > 31 || maybeResourceIdentifier < 0) throw new Exception("Unsupported resource identifier");
 
         // Run some check here too - TBD
         int payloadLength = BinaryPrimitives.ReadUInt16BigEndian(potentialHeader[2..3]);
         
-        PacketHeader header = new(protocolVersion, packetEncoding, packetType, payloadLength);
+        PacketHeader header = new(protocolVersion, messageType, packetMethod, (int)maybeResourceIdentifier, payloadLength);
 
         return header;
 
@@ -42,20 +42,21 @@ public class HeaderSerialiser
 
         bytes[1] = (byte)header.ProtocolVersion;
 
-        byte[] encoding = new byte[4];
-        byte[] packetType = new byte[4];
+        byte messageType, messageMethod, resourceIdentifier;
 
         if(BitConverter.IsLittleEndian)
         {
-            encoding = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness((int)header.PacketEncoding));
-            packetType = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness((int)header.PacketType));
+            messageType = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness((int)header.MessageType))[0];
+            messageMethod = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness((int)header.ProtocolMethod))[0];
+            resourceIdentifier = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness((int)header.ResourceIdentifier))[0];
         }
 
-        encoding = BitConverter.GetBytes((int)header.PacketEncoding);
-        packetType = BitConverter.GetBytes((int)header.PacketType);
+        messageType = BitConverter.GetBytes((int)header.MessageType)[0];
+        messageMethod = BitConverter.GetBytes((int)header.MessageType)[0];
+        resourceIdentifier = BitConverter.GetBytes((int)header.ResourceIdentifier)[0];
 
         // TODO double check this
-        bytes[3] = (byte) ((encoding[0] & 0b00111111)  | ((packetType[0] & 0b00000011) >> 2));
+        bytes[3] = (byte)((messageType & 0b00000001) << 7  | ((messageMethod & 0b00000011) << 4) | (resourceIdentifier &0b00011111));
 
         BinaryPrimitives.TryWriteInt16BigEndian(byteSpan,(short)header.PayloadLength);
 
