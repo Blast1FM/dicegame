@@ -4,7 +4,7 @@ namespace DiceGame.Networking.Protocol;
 
 public class HeaderSerialiser
 {
-    public PacketHeader DeserialiseHeader(ref MemoryStream dataStream)
+    public PacketHeader DeserialiseHeader(ref Stream dataStream)
     {
         byte[] potentialHeader = new byte[4];
         int bytesRead = dataStream.Read(potentialHeader,0,4);
