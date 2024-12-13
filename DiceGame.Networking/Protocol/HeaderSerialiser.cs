@@ -2,15 +2,38 @@ using System.Buffers.Binary;
 
 namespace DiceGame.Networking.Protocol;
 
-public class HeaderSerialiser
+public static class HeaderSerialiser
 {
-    public PacketHeader DeserialiseHeader(ref Stream dataStream)
+    /// <summary>
+    /// Will try to deserialise the header from the next 4 bytes in the stream. Will advance the seeker head
+    /// </summary>
+    /// <param name="dataStream"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
+    public static PacketHeader DeserialiseHeader(ref Stream dataStream)
     {
         byte[] potentialHeader = new byte[4];
         int bytesRead = dataStream.Read(potentialHeader,0,4);
+        if(bytesRead != 4) throw new Exception($"Could not read 4 bytes for header, got {bytesRead}");
 
-        // TODO better exceptions lol
-        if(bytesRead != 4) throw new Exception("Could not read enough bytes for header");
+        return BuildHeaderFromBytes(potentialHeader);
+    }
+
+    /// <summary>
+    /// Will try to deserialise a message header from first 4 bytes of the passed data
+    /// </summary>
+    /// <param name="data"></param>
+    /// <returns></returns>
+    public static PacketHeader DeserialiseHeader(byte[] data)
+    {
+        byte[] potentialHeader = data.Take(4).ToArray();
+
+        return BuildHeaderFromBytes(potentialHeader);
+    }
+
+    public static PacketHeader BuildHeaderFromBytes(byte[] potentialHeader)
+    {
+        if (potentialHeader.Length != 4) throw new Exception($"Could not get enough bytes for header, expected 4, got {potentialHeader.Length}");
 
         if(!Enum.IsDefined(typeof(PacketHeader), potentialHeader[0])) throw new Exception("Unsupported protocol version");
         ProtocolVersion protocolVersion = (ProtocolVersion)potentialHeader[0];
@@ -30,12 +53,11 @@ public class HeaderSerialiser
         PacketHeader header = new(protocolVersion, messageType, packetMethod, (int)maybeResourceIdentifier, payloadLength);
 
         return header;
-
     }
 
     // TODO validation
     // TODO WRITE A FUCKING UNIT TEST FOR THIS, IT WILL BREAK EVERYTHING AND CAUSE HEADACHE
-    public byte[] SerialiseHeader(PacketHeader header)
+    public static byte[] SerialiseHeader(PacketHeader header)
     {
         byte[] bytes = new byte[4];
         Span<byte> byteSpan = new (bytes,2,2);
