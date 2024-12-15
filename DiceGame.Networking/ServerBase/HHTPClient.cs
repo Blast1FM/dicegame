@@ -5,8 +5,9 @@ using DiceGame.Networking.Protocol;
 
 namespace DiceGame.Networking;
 
-public class HHTPServer
+public class HHTPClient
 {
+    public IPEndPoint clientEndpoint;
     public async Task<Packet> RecievePacket(Socket socket)
     {
         // TODO make buffer length configurable if you can be bothered
@@ -59,10 +60,19 @@ public class HHTPServer
     public async Task SendPacket(Packet packet, Socket socket)
     {
         // Serialise
+        byte[] headerBytes = HeaderSerialiser.SerialiseHeader(packet.Header);
+        byte[] payloadBytes = Encoding.BigEndianUnicode.GetBytes(packet.Payload);
+        
+        byte[] data = headerBytes.Concat(payloadBytes).ToArray();
 
         // Split into chunks? Unless it's done automagically
 
         // Send the little shit off
-        
+
+        var socketArgs = new SocketAsyncEventArgs();
+        socketArgs.SetBuffer(data, 0, data.Length);
+        var saw = new SocketAwaitable(socketArgs);
+
+        await socket.SendAsync(saw);
     }
 }
