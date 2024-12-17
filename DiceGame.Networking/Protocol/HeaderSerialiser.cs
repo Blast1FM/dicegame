@@ -38,7 +38,7 @@ public static class HeaderSerialiser
         if(!Enum.IsDefined(typeof(PacketHeader), potentialHeader[0])) throw new Exception("Unsupported protocol version");
         ProtocolVersion protocolVersion = (ProtocolVersion)potentialHeader[0];
 
-        MessageType messageType = (MessageType)((int)(potentialHeader[1] & 0b10000000)>>7);
+        StatusCode statusCode = (StatusCode)((int)(potentialHeader[1] & 0b10000000)>>7);
 
         uint maybeMethod = (uint)((potentialHeader[1] & 0b01100000) >> 5);
         if(!Enum.IsDefined(typeof(ProtocolMethod), maybeMethod)) throw new Exception("Unsupported packet encoding type");
@@ -48,9 +48,9 @@ public static class HeaderSerialiser
         if(maybeResourceIdentifier > 31 || maybeResourceIdentifier < 0) throw new Exception("Unsupported resource identifier");
 
         // Run some check here too - TBD
-        int payloadLength = BinaryPrimitives.ReadUInt16BigEndian(potentialHeader[2..3]);
+        int payloadLength = BinaryPrimitives.ReadUInt16BigEndian(potentialHeader.AsSpan()[2..3]);
         
-        PacketHeader header = new(protocolVersion, messageType, packetMethod, (int)maybeResourceIdentifier, payloadLength);
+        PacketHeader header = new(protocolVersion, statusCode, packetMethod, (int)maybeResourceIdentifier, payloadLength);
 
         return header;
     }

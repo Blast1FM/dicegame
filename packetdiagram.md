@@ -14,9 +14,9 @@ Octet 1 - Protocol version
 Octet 2 - Split between message type, method and resource identifier
 Octet 3 - Payload length
 
-# Message type
-- 0 - Request
-- 1 - Response
+# Status Code
+- 0 - Ok
+- 1 - Error
 
 # Method type
 - 00 - 0 - GET
