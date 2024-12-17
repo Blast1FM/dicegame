@@ -11,4 +11,8 @@
     <PackageReference Include="Raylib-cs" Version="6.1.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DiceGame.Common\DiceGame.Common.csproj" />
+  </ItemGroup>
+
 </Project>

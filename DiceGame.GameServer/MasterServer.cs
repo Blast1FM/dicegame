@@ -4,5 +4,5 @@ namespace DiceGame.GameServer;
 
 public class MasterServer
 {
-
+    
 }

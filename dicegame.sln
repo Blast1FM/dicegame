@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiceGame.Networking", "Dice
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiceGame.Client", "DiceGame.Client\DiceGame.Client.csproj", "{9E654E2F-C614-4CE7-9B5C-1DCC6C03F3EF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiceGame.Common", "DiceGame.Common\DiceGame.Common.csproj", "{7AD6DAEB-1C31-4A10-9894-8977EA93D4B1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{9E654E2F-C614-4CE7-9B5C-1DCC6C03F3EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9E654E2F-C614-4CE7-9B5C-1DCC6C03F3EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9E654E2F-C614-4CE7-9B5C-1DCC6C03F3EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7AD6DAEB-1C31-4A10-9894-8977EA93D4B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7AD6DAEB-1C31-4A10-9894-8977EA93D4B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7AD6DAEB-1C31-4A10-9894-8977EA93D4B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7AD6DAEB-1C31-4A10-9894-8977EA93D4B1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
