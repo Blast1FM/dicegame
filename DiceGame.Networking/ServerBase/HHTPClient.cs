@@ -7,7 +7,8 @@ namespace DiceGame.Networking;
 
 public class HHTPClient
 {
-    public async Task<Packet> RecievePacket(Socket socket)
+    private readonly Socket _socket;
+    public async Task<Packet> RecievePacket()
     {
         // TODO make buffer length configurable if you can be bothered
         var recv = new byte[1024];
@@ -15,7 +16,7 @@ public class HHTPClient
         args.SetBuffer(recv, 0, recv.Length);
         var saw = new SocketAwaitable(args);
 
-        await socket.ReceiveAsync(saw);
+        await _socket.ReceiveAsync(saw);
         var bytesRead = args.BytesTransferred;
 
         var header = HeaderSerialiser.DeserialiseHeader(recv);
@@ -45,7 +46,7 @@ public class HHTPClient
             }
             
             // If recieve async doesn't overwrite from the start i may have a problem here
-            await socket.ReceiveAsync(saw);
+            await _socket.ReceiveAsync(saw);
             bytesRead = args.BytesTransferred;
 
             bufferOffset = 0;
@@ -56,7 +57,7 @@ public class HHTPClient
         return new Packet(header, payload);
     }
 
-    public async Task SendPacket(Packet packet, Socket socket)
+    public async Task SendPacket(Packet packet)
     {
         // Serialise
         byte[] headerBytes = HeaderSerialiser.SerialiseHeader(packet.Header);
@@ -72,6 +73,14 @@ public class HHTPClient
         socketArgs.SetBuffer(data, 0, data.Length);
         var saw = new SocketAwaitable(socketArgs);
 
-        await socket.SendAsync(saw);
+        await _socket.SendAsync(saw);
+    }
+    public void CloseConnection()
+    {
+        _socket.Close();
+    }
+    public HHTPClient(Socket socket)
+    {
+        _socket = socket;
     }
 }
