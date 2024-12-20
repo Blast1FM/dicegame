@@ -4,6 +4,6 @@ namespace DiceGame.Common.Messages;
 
 public class PregameRollMessage : BaseMessage
 {
-    public Player Player {get;set;}
+    public PlayerInfo Player {get;set;}
     public int Roll {get;set;}
 }

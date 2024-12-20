@@ -4,6 +4,6 @@ namespace DiceGame.Common.Messages;
 
 public class ReadyMessage : BaseMessage
 {
-    public Player Player {get;set;}
+    public PlayerInfo Player {get;set;}
     public bool Ready { get; set; }
 }

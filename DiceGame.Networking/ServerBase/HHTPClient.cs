@@ -55,7 +55,6 @@ public class HHTPClient
 
         return new Packet(header, payload);
     }
-
     public async Task SendPacket(Packet packet)
     {
         // Serialise
