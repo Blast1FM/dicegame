@@ -2,5 +2,5 @@ namespace DiceGame.Common.Messages;
 
 public class BaseMessage
 {
-    public DateTime CreatedAt {get; set;}
+    public DateTime CreatedAt {get; set;} = DateTime.Now;
 }

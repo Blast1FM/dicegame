@@ -1,20 +1,21 @@
+using DiceGame.Networking;
 using DiceGame.Networking.Protocol;
 
 namespace DiceGame.GameServer.GameRoom;
 
 public class RequestRouter
 {
-    public Dictionary<int, Action<Packet>>? GetRequestHandlers {get;set;}
-    public Dictionary<int, Action<Packet>>? PostRequestHandlers {get;set;}
-    public Dictionary<int, Action<Packet>>? UpdateRequestHandlers {get;set;}
-    public Dictionary<int, Action<Packet>>? DeleteRequestHandlers {get;set;}
+    public Dictionary<int, Action<Packet, HHTPClient>>? GetRequestHandlers {get;set;}
+    public Dictionary<int, Action<Packet, HHTPClient>>? PostRequestHandlers {get;set;}
+    public Dictionary<int, Action<Packet, HHTPClient>>? UpdateRequestHandlers {get;set;}
+    public Dictionary<int, Action<Packet, HHTPClient>>? DeleteRequestHandlers {get;set;}
 
     public RequestRouter
     (
-        Dictionary<int, Action<Packet>>? getRequestHandlers, 
-        Dictionary<int, Action<Packet>>? postRequestHandlers, 
-        Dictionary<int, Action<Packet>>? updateRequestHandlers, 
-        Dictionary<int, Action<Packet>>? deleteRequestHandlers
+        Dictionary<int, Action<Packet, HHTPClient>>? getRequestHandlers = null, 
+        Dictionary<int, Action<Packet, HHTPClient>>? postRequestHandlers = null, 
+        Dictionary<int, Action<Packet, HHTPClient>>? updateRequestHandlers = null, 
+        Dictionary<int, Action<Packet, HHTPClient>>? deleteRequestHandlers = null
     )
     {
         GetRequestHandlers = getRequestHandlers;
@@ -23,7 +24,7 @@ public class RequestRouter
         DeleteRequestHandlers = deleteRequestHandlers;
     }
 
-    public void RouteRequest(Packet packet)
+    public void RouteRequest(Packet packet, HHTPClient clientConnection)
     {
         int resourceIdentifier = packet.Header.ResourceIdentifier;
         var method = packet.Header.ProtocolMethod;
@@ -36,7 +37,7 @@ public class RequestRouter
 
                 if(GetRequestHandlers.TryGetValue(resourceIdentifier, out var handler))
                 {
-                    handler(packet);
+                    handler(packet, clientConnection);
                 }
                 else throw new ArgumentException($"Resource not found: {resourceIdentifier}");
                 break;
@@ -47,7 +48,7 @@ public class RequestRouter
 
                 if(PostRequestHandlers.TryGetValue(resourceIdentifier, out var handler))
                 {
-                    handler(packet);
+                    handler(packet, clientConnection);
                 }
                 else throw new ArgumentException($"Resource not found: {resourceIdentifier}");
                 break;
@@ -58,7 +59,7 @@ public class RequestRouter
 
                 if(UpdateRequestHandlers.TryGetValue(resourceIdentifier, out var handler))
                 {
-                    handler(packet);
+                    handler(packet, clientConnection);
                 }
                 else throw new ArgumentException($"Resource not found: {resourceIdentifier}");
                 break;
@@ -70,7 +71,7 @@ public class RequestRouter
 
                 if(DeleteRequestHandlers.TryGetValue(resourceIdentifier, out var handler))
                 {
-                    handler(packet);
+                    handler(packet, clientConnection);
                 }
                 else throw new ArgumentException($"Resource not found: {resourceIdentifier}");
                 break;

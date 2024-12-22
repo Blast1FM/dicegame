@@ -5,14 +5,14 @@ MSB                               LSB
 ___________________________________________
 |12345678| 1   23  45678|12345678|12345678|
 ◦--------◦--------------◦--------◦--------◦
-|version |type|met|ident|  payload length |
+|version |stat|met|ident|  payload length |
 ◦--------◦--------------◦-----------------◦
 |         len bytes of data               |
 ◦-----------------------------------------◦
 
 Octet 1 - Protocol version
 Octet 2 - Split between message type, method and resource identifier
-Octet 3 - Payload length
+Octet 3 - Payload length in bytes
 
 # Status Code
 - 0 - Ok
