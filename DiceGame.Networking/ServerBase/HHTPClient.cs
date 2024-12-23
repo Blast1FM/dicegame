@@ -7,6 +7,7 @@ namespace DiceGame.Networking;
 public class HHTPClient
 {
     private readonly Socket _socket;
+    public Socket Socket {get => _socket; }
     public async Task<Packet> RecievePacket()
     {
         // TODO make buffer length configurable if you can be bothered

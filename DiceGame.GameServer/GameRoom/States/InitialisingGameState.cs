@@ -36,16 +36,14 @@ public class InitialisingGameState : GameState
             {
                 System.Console.WriteLine($"Error:{e.Message}");
                 string messagePayload = e.Message;
-                PacketHeader errorPacketHeader = new
-                (
-                    ProtocolVersion.V1, 
-                    StatusCode.Error,
-                    maybeInitPacket.Header.ProtocolMethod,
-                    maybeInitPacket.Header.ResourceIdentifier, 
-                    System.Text.Encoding.Unicode.GetByteCount(messagePayload)
-                );
 
-                Packet errorPacket = new(errorPacketHeader, messagePayload);
+                Packet errorPacket = new
+                (
+                    StatusCode.Error, 
+                    maybeInitPacket.Header.ProtocolMethod, 
+                    maybeInitPacket.Header.ResourceIdentifier, 
+                    messagePayload
+                );
 
                 await connection.SendPacket(errorPacket);
 

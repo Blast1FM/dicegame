@@ -68,13 +68,13 @@ public static class HeaderSerialiser
 
         if(BitConverter.IsLittleEndian)
         {
-            messageType = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness((int)header.MessageType))[0];
+            messageType = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness((int)header.StatusCode))[0];
             messageMethod = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness((int)header.ProtocolMethod))[0];
             resourceIdentifier = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness((int)header.ResourceIdentifier))[0];
         }
 
-        messageType = BitConverter.GetBytes((int)header.MessageType)[0];
-        messageMethod = BitConverter.GetBytes((int)header.MessageType)[0];
+        messageType = BitConverter.GetBytes((int)header.StatusCode)[0];
+        messageMethod = BitConverter.GetBytes((int)header.StatusCode)[0];
         resourceIdentifier = BitConverter.GetBytes((int)header.ResourceIdentifier)[0];
 
         // TODO double check this

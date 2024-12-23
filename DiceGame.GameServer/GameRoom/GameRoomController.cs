@@ -1,3 +1,4 @@
+using System.Net.Sockets;
 using DiceGame.GameServer.GameRoom;
 using DiceGame.GameServer.GameRoom.States;
 using DiceGame.Networking;
@@ -23,4 +24,40 @@ public class GameRoomController
             _stateManager.Update();
         }
     }
+
+    private bool IsClientConnected(HHTPClient client)
+    {
+        try
+        {
+            return !(client.Socket.Poll(1000, SelectMode.SelectRead) && client.Socket.Available == 0);
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    // TODO Start this task after the game is finished initialising
+    private async Task MonitorConnections()
+    {
+        while (true)
+        {
+            foreach (var player in _players)
+            {
+                if (!IsClientConnected(player.HHTPClientConnection))
+                {
+                    if (player.IsConnected)
+                    {
+                        // Mark as disconnected
+                        player.IsConnected = false;
+                        player.LastSeen = DateTime.UtcNow;
+                        Console.WriteLine($"Client disconnected: {player.PlayerInfo.Guid}:{player.PlayerInfo.Name}");
+                    }
+                }
+            }
+            await Task.Delay(5000);
+        }
+    }
+
+
 }
