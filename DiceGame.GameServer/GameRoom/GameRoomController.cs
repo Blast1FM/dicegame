@@ -69,7 +69,6 @@ public class GameRoomController
                         player.LastSeen = DateTime.UtcNow;
                         OnPlayerDisconnected(player);
                         Console.WriteLine($"Client disconnected: {player.PlayerInfo.Guid}:{player.PlayerInfo.Name}");
-                        
                         _unprocessedConnections.Add(player.HHTPClientConnection);
                     }
                 }

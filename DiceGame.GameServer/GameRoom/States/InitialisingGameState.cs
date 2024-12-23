@@ -1,4 +1,5 @@
 using System.Dynamic;
+using System.Net.Sockets;
 using System.Text.Json;
 using DiceGame.Common.Messages;
 using DiceGame.Networking;
@@ -10,7 +11,8 @@ public class InitialisingGameState : GameState
 {
     private RequestRouter _requestRouter;
     private GameRoomController _controller;
-    bool AcceptingConnections {get;set;} = true;
+    private HHTPListener _listener;
+    int MaxPlayers {get; set;} = 3;
     public InitialisingGameState(GameRoomController controller)
     {
         _controller = controller;
@@ -20,54 +22,72 @@ public class InitialisingGameState : GameState
             [0] = HandleInitialiseRequest
         };
 
+        _listener = new HHTPListener();
+
         _requestRouter = new RequestRouter(null, postRequestHandlers);
 
     }
     public async override void Enter()
     {
-        var listner = new HHTPListener();
-        listner.ClientConnected += HandleClientConnected;
+        _controller.PlayerDisconnected += HandlePlayerDisconnect;
+        _listener.ClientConnected += HandleClientConnected;
 
-        _ = Task.Run(listner.Listen);
+        _ = Task.Run(_listener.Listen);
 
-        // TODO this should actually just have the listener stuff?
     }
 
     public async override void Exit()
     {
+        _controller.PlayerDisconnected -= HandlePlayerDisconnect;
+        _listener.ClientConnected -= HandleClientConnected;
+        // TODO cancel listen task with a cancellation token
         throw new NotImplementedException();
     }
 
     public override async void Update()
     {
-        // Handle initialisation packets
-        foreach (var connection in _controller._unprocessedConnections)
+        
+        if (_controller._players.Count == MaxPlayers)
         {
-            Packet maybeInitPacket = await connection.RecievePacket();
-            try
-            {
-                _requestRouter.RouteRequest(maybeInitPacket, connection);
-            }
-            // TODO test for more specific exception
-            catch (Exception e)
-            {
-                System.Console.WriteLine($"Error:{e.Message}");
-                string messagePayload = e.Message;
-
-                Packet errorPacket = new
-                (
-                    StatusCode.Error, 
-                    maybeInitPacket.Header.ProtocolMethod, 
-                    maybeInitPacket.Header.ResourceIdentifier, 
-                    messagePayload
-                );
-
-                await connection.SendPacket(errorPacket);
-
-                throw;
-            }
-
+            _controller._stateManager.ChangeGameState(this, "pregame");
         }
+        else
+        {
+            // Handle initialisation packets
+            foreach (var connection in _controller._unprocessedConnections)
+            {
+                Packet maybeInitPacket = await connection.RecievePacket();
+                try
+                {
+                    _requestRouter.RouteRequest(maybeInitPacket, connection);
+                }
+                // TODO test for more specific exception
+                catch (Exception e)
+                {
+                    System.Console.WriteLine($"Error:{e.Message}");
+                    string messagePayload = e.Message;
+
+                    Packet errorPacket = new
+                    (
+                        StatusCode.Error, 
+                        maybeInitPacket.Header.ProtocolMethod, 
+                        maybeInitPacket.Header.ResourceIdentifier, 
+                        messagePayload
+                    );
+
+                    await connection.SendPacket(errorPacket);
+
+                    throw;
+                }
+
+            }
+        }
+        
+    }
+
+    private void HandlePlayerDisconnect(object? sender, Player player)
+    {
+        throw new NotImplementedException();
     }
 
     private void HandleClientConnected(object? sender, ClientConnectedEventArgs e)
