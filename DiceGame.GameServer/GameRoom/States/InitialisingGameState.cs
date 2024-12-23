@@ -1,3 +1,4 @@
+using System.Dynamic;
 using System.Text.Json;
 using DiceGame.Common.Messages;
 using DiceGame.Networking;
@@ -9,6 +10,7 @@ public class InitialisingGameState : GameState
 {
     private RequestRouter _requestRouter;
     private GameRoomController _controller;
+    bool AcceptingConnections {get;set;} = true;
     public InitialisingGameState(GameRoomController controller)
     {
         _controller = controller;
@@ -23,6 +25,11 @@ public class InitialisingGameState : GameState
     }
     public async override void Enter()
     {
+        var listner = new HHTPListener();
+        listner.ClientConnected += HandleClientConnected;
+
+        _ = Task.Run(listner.Listen);
+
         // TODO this should actually just have the listener stuff?
     }
 
@@ -31,18 +38,17 @@ public class InitialisingGameState : GameState
         throw new NotImplementedException();
     }
 
-    // TODO Place the listener stuff here, or maybe not? Have it in a separate method? I'm losing my mind here
     public override async void Update()
     {
         // Handle initialisation packets
-        // This will cause long connections for clients, while one client is lagging
-        foreach (var connection in _controller._connections)
+        foreach (var connection in _controller._unprocessedConnections)
         {
             Packet maybeInitPacket = await connection.RecievePacket();
             try
             {
                 _requestRouter.RouteRequest(maybeInitPacket, connection);
             }
+            // TODO test for more specific exception
             catch (Exception e)
             {
                 System.Console.WriteLine($"Error:{e.Message}");
@@ -64,6 +70,15 @@ public class InitialisingGameState : GameState
         }
     }
 
+    private void HandleClientConnected(object? sender, ClientConnectedEventArgs e)
+    {
+        // Wrap the accepted socket in an HHTPClient object
+        var client = new HHTPClient(e.clientSocket);
+
+        // Add the new client connection to the controller's list
+        _controller._unprocessedConnections.Add(client);
+        Console.WriteLine($"New client connected from: {client.Socket.RemoteEndPoint}");
+    }
     // TODO write a unit test for this
     public async void HandleInitialiseRequest(Packet packet, HHTPClient clientConnection)
     {
@@ -72,19 +87,13 @@ public class InitialisingGameState : GameState
 
         // TODO create Player object for this player, associate a HHTP client with it
         Player player = new(initMessage.PlayerInfo, clientConnection, initMessage.RequestedPayout);
+        
+        Packet okPacket = new(StatusCode.Ok,packet.Header.ProtocolMethod, packet.Header.ResourceIdentifier,"");
+        
+        await clientConnection.SendPacket(okPacket);
 
         _controller._players.Add(player);
-
-        PacketHeader okPacketHeader = new
-                (
-                    ProtocolVersion.V1, 
-                    StatusCode.Ok,
-                    packet.Header.ProtocolMethod,
-                    packet.Header.ResourceIdentifier, 
-                    0
-                );
-        
-        await clientConnection.SendPacket(new Packet(okPacketHeader, ""));
+        _controller._unprocessedConnections.Remove(clientConnection);
 
     }
 }
