@@ -10,11 +10,13 @@ public class GameRoomController
     public StateManager _stateManager;
     public List<Player> _players;
     public List<HHTPClient> _unprocessedConnections;
+    public List<Player> _disconnectedPlayers;
     public HHTPListener _listener;
     // TODO Actually create states here instead of having them passed into the constructor, this is temporary to make the warnings fuck off
     public GameRoomController(Dictionary<string, GameState> states, List<HHTPClient> connections)
     {
         _players = new(3);
+        _disconnectedPlayers = new(3);
         _listener = new HHTPListener();
         _unprocessedConnections = connections;
         _stateManager = new StateManager(states);
@@ -22,12 +24,19 @@ public class GameRoomController
     }
     public async void Run()
     {
-        _ = Task.Run(MonitorConnections);
+        _listener.ClientConnected += HandlePlayerConnected;
+        _ = Task.Run(_listener.Listen);
+        _ = Task.Run(MonitorPlayerConnections);
 
         while(true)
         {
             _stateManager.Update();
         }
+    }
+
+    public void HandlePlayerConnected(object? sender, ClientConnectedEventArgs e)
+    {
+        _unprocessedConnections.Add(new HHTPClient(e.clientSocket));
     }
 
     #region Player disconnect reconnect stuff
@@ -54,7 +63,7 @@ public class GameRoomController
             return false;
         }
     }
-    private async Task MonitorConnections()
+    private async Task MonitorPlayerConnections()
     {
         while (true)
         {
@@ -86,6 +95,8 @@ public class GameRoomController
             player.LastSeen = DateTime.UtcNow;
             player.HHTPClientConnection = client;
             Console.WriteLine($"Client reconnected: {player.PlayerInfo.Guid}:{player.PlayerInfo.Name}");
+            
+            _unprocessedConnections.Remove(connection);
         }
         else
         {
