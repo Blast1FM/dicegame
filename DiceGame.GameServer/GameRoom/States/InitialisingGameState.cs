@@ -23,6 +23,17 @@ public class InitialisingGameState : GameState
     }
     public async override void Enter()
     {
+        // TODO this should actually just have the listener stuff?
+    }
+
+    public async override void Exit()
+    {
+        throw new NotImplementedException();
+    }
+
+    // TODO Place the listener stuff here, or maybe not? Have it in a separate method? I'm losing my mind here
+    public override async void Update()
+    {
         // Handle initialisation packets
         // This will cause long connections for clients, while one client is lagging
         foreach (var connection in _controller._connections)
@@ -51,17 +62,6 @@ public class InitialisingGameState : GameState
             }
 
         }
-    }
-
-    public override void Exit()
-    {
-        throw new NotImplementedException();
-    }
-
-    // TODO Place the listener stuff here, or maybe not? Have it in a separate method? I'm losing my mind here
-    public override async void Update()
-    {
-        throw new NotImplementedException();
     }
 
     // TODO write a unit test for this
