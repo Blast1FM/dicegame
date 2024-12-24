@@ -27,6 +27,7 @@ public class GameRoomController
     {
         _listener.ClientConnected += HandleClientConnected;
         PlayerDisconnected += HandlePlayerDisconnect;
+        PlayerReconnected += HandlePlayerReconnect;
         _ = Task.Run(_listener.Listen);
         _ = Task.Run(MonitorPlayerConnections);
 
@@ -39,17 +40,18 @@ public class GameRoomController
     public void HandleClientConnected(object? sender, ClientConnectedEventArgs e)
     {
         _unprocessedConnections.Add(new HHTPClient(e.clientSocket));
+        if(_disconnectedPlayers.Count>0) OnPlayerReconnected(new HHTPClient(e.clientSocket));
     }
 
     #region Player disconnect reconnect stuff
     public event EventHandler<PlayerConnectionEventArgs>? PlayerDisconnected;
-    public event EventHandler<PlayerConnectionEventArgs>? PlayerReconnected;
+    public event EventHandler<HHTPClient>? PlayerReconnected;
 
     public virtual void OnPlayerDisconnected(PlayerConnectionEventArgs e)
     {
         PlayerDisconnected?.Invoke(this, e);
     }
-    public virtual void OnPlayerReconnected(PlayerConnectionEventArgs e)
+    public virtual void OnPlayerReconnected(HHTPClient e)
     {
         PlayerReconnected?.Invoke(this, e);
     }
@@ -90,11 +92,9 @@ public class GameRoomController
         Console.WriteLine($"Client disconnected: {e.Player.PlayerInfo.Guid}:{e.Player.PlayerInfo.Name}");
         _disconnectedPlayers.Add(e.Player);
     }
-
-    // TODO this needs work
     public void HandlePlayerReconnect(object? sender, HHTPClient client)
     {
-
+        // NOTE - This socket lookup might fail if it gets disposed of, which it probably will - Keep in mind
         var connection = _unprocessedConnections.Where(c => c.Socket.RemoteEndPoint == client.Socket.RemoteEndPoint).FirstOrDefault();
         if (connection != null)
         {
@@ -103,7 +103,7 @@ public class GameRoomController
             player.LastSeen = DateTime.UtcNow;
             player.HHTPClientConnection = client;
             Console.WriteLine($"Client reconnected: {player.PlayerInfo.Guid}:{player.PlayerInfo.Name}");
-            
+            _disconnectedPlayers.Remove(player);
             _unprocessedConnections.Remove(connection);
         }
         else
