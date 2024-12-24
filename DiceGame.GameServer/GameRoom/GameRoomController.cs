@@ -1,4 +1,5 @@
 using System.Net.Sockets;
+using System.Runtime.InteropServices.Marshalling;
 using DiceGame.GameServer.GameRoom;
 using DiceGame.GameServer.GameRoom.States;
 using DiceGame.Networking;
@@ -24,7 +25,8 @@ public class GameRoomController
     }
     public async void Run()
     {
-        _listener.ClientConnected += HandlePlayerConnected;
+        _listener.ClientConnected += HandleClientConnected;
+        PlayerDisconnected += HandlePlayerDisconnect;
         _ = Task.Run(_listener.Listen);
         _ = Task.Run(MonitorPlayerConnections);
 
@@ -34,22 +36,22 @@ public class GameRoomController
         }
     }
 
-    public void HandlePlayerConnected(object? sender, ClientConnectedEventArgs e)
+    public void HandleClientConnected(object? sender, ClientConnectedEventArgs e)
     {
         _unprocessedConnections.Add(new HHTPClient(e.clientSocket));
     }
 
     #region Player disconnect reconnect stuff
-    public event EventHandler<Player>? PlayerDisconnected;
-    public event EventHandler<Player>? PlayerReconnected;
+    public event EventHandler<PlayerConnectionEventArgs>? PlayerDisconnected;
+    public event EventHandler<PlayerConnectionEventArgs>? PlayerReconnected;
 
-    private void OnPlayerDisconnected(Player player)
+    public virtual void OnPlayerDisconnected(PlayerConnectionEventArgs e)
     {
-        PlayerDisconnected?.Invoke(this, player);
+        PlayerDisconnected?.Invoke(this, e);
     }
-    private void OnPlayerReconnected(Player player)
+    public virtual void OnPlayerReconnected(PlayerConnectionEventArgs e)
     {
-        PlayerReconnected?.Invoke(this, player);
+        PlayerReconnected?.Invoke(this, e);
     }
 
     private bool IsClientConnected(HHTPClient client)
@@ -73,20 +75,26 @@ public class GameRoomController
                 {
                     if (player.IsConnected)
                     {
-                        // Mark as disconnected
-                        player.IsConnected = false;
-                        player.LastSeen = DateTime.UtcNow;
-                        OnPlayerDisconnected(player);
-                        Console.WriteLine($"Client disconnected: {player.PlayerInfo.Guid}:{player.PlayerInfo.Name}");
-                        _unprocessedConnections.Add(player.HHTPClientConnection);
+                        OnPlayerDisconnected(new PlayerConnectionEventArgs(player));          
                     }
                 }
             }
             await Task.Delay(5000);
         }
     }
-    public void HandleReconnection(HHTPClient client)
+
+    private void HandlePlayerDisconnect(object? sender, PlayerConnectionEventArgs e)
     {
+        e.Player.IsConnected = false;
+        e.Player.LastSeen = DateTime.UtcNow;
+        Console.WriteLine($"Client disconnected: {e.Player.PlayerInfo.Guid}:{e.Player.PlayerInfo.Name}");
+        _disconnectedPlayers.Add(e.Player);
+    }
+
+    // TODO this needs work
+    public void HandlePlayerReconnect(object? sender, HHTPClient client)
+    {
+
         var connection = _unprocessedConnections.Where(c => c.Socket.RemoteEndPoint == client.Socket.RemoteEndPoint).FirstOrDefault();
         if (connection != null)
         {
