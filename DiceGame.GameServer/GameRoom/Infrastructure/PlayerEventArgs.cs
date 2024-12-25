@@ -1,7 +1,4 @@
-using System;
-
-namespace DiceGame.GameServer.GameRoom;
-
+namespace DiceGame.GameServer.GameRoom.Infrastructure;
 public class PlayerConnectionEventArgs : EventArgs
 {
     public Player Player { get; set; }

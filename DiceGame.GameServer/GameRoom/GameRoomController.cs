@@ -1,6 +1,5 @@
 using System.Net.Sockets;
-using System.Runtime.InteropServices.Marshalling;
-using DiceGame.GameServer.GameRoom;
+using DiceGame.GameServer.GameRoom.Infrastructure;
 using DiceGame.GameServer.GameRoom.States;
 using DiceGame.Networking;
 using DiceGame.Networking.Protocol;
@@ -15,12 +14,12 @@ public class GameRoomController
     public List<Player> _disconnectedPlayers;
     public HHTPListener _listener;
     // TODO Actually create states here instead of having them passed into the constructor, this is temporary to make the warnings fuck off
-    public GameRoomController(Dictionary<string, GameState> states, List<HHTPClient> connections)
+    public GameRoomController(Dictionary<string, GameState> states)
     {
+        _unprocessedConnections = new(3);
+        _listener = new HHTPListener();
         _players = new(3);
         _disconnectedPlayers = new(3);
-        _listener = new HHTPListener();
-        _unprocessedConnections = connections;
         _stateManager = new StateManager(states);
 
     }

@@ -1,7 +1,7 @@
 using DiceGame.Networking;
 using DiceGame.Networking.Protocol;
 
-namespace DiceGame.GameServer.GameRoom;
+namespace DiceGame.GameServer.GameRoom.Infrastructure;
 
 public class RequestRouter
 {

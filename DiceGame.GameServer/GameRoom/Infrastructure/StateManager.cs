@@ -1,7 +1,6 @@
-using System;
 using DiceGame.GameServer.GameRoom.States;
 
-namespace DiceGame.GameServer.GameRoom;
+namespace DiceGame.GameServer.GameRoom.Infrastructure;
 
 public class StateManager
 {

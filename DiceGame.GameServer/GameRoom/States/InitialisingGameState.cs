@@ -2,6 +2,7 @@ using System.Text.Json;
 using DiceGame.Common.Messages;
 using DiceGame.Networking;
 using DiceGame.Networking.Protocol;
+using DiceGame.GameServer.GameRoom.Infrastructure;
 
 namespace DiceGame.GameServer.GameRoom.States;
 
@@ -89,10 +90,8 @@ public class InitialisingGameState : GameState
     // TODO write a unit test for this
     public async void HandleInitialiseRequest(Packet packet, HHTPClient clientConnection)
     {
-        // TODO Deserialise json into an init player message
         PlayerInitMessage initMessage = JsonSerializer.Deserialize<PlayerInitMessage>(packet.Payload) ?? throw new ArgumentNullException($"Player init message is null");
 
-        // TODO create Player object for this player, associate a HHTP client with it
         Player player = new(initMessage.PlayerInfo, clientConnection, initMessage.RequestedPayout);
         
         Packet okPacket = new(StatusCode.Ok,packet.Header.ProtocolMethod, packet.Header.ResourceIdentifier,"");

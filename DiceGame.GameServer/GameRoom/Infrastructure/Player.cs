@@ -1,7 +1,7 @@
 using DiceGame.Common.Models;
 using DiceGame.Networking;
 
-namespace DiceGame.GameServer.GameRoom;
+namespace DiceGame.GameServer.GameRoom.Infrastructure;
 
 public class Player
 {
