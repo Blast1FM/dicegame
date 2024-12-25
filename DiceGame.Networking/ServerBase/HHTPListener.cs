@@ -11,7 +11,7 @@ public class HHTPListener
     {
         ClientConnected?.Invoke(this, e);
     }
-    public async void Listen()
+    public async Task Listen()
     {
         var endPoint = new IPEndPoint(IPAddress.Any, ListeningPort);
         using var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);

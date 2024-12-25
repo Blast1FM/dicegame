@@ -7,7 +7,7 @@ public abstract class GameState
     {
         StateChanged?.Invoke(this,e);
     }
-    public abstract void Enter();
-    public abstract void Exit();
-    public abstract void Update();
+    public abstract Task Enter();
+    public abstract Task Exit();
+    public abstract Task Update();
 }

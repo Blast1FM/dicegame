@@ -1,5 +1,3 @@
-using System.Dynamic;
-using System.Net.Sockets;
 using System.Text.Json;
 using DiceGame.Common.Messages;
 using DiceGame.Networking;
@@ -22,16 +20,15 @@ public class InitialisingGameState : GameState
         };
 
         _requestRouter = new RequestRouter(null, postRequestHandlers);
-
     }
-    public async override void Enter()
+    public async override Task Enter()
     {
         _controller.PlayerDisconnected += HandlePlayerDisconnect;
         _controller._listener.ClientConnected += HandleClientConnected;
 
     }
 
-    public async override void Exit()
+    public async override Task Exit()
     {
         _controller.PlayerDisconnected -= HandlePlayerDisconnect;
         _controller._listener.ClientConnected -= HandleClientConnected;
@@ -39,7 +36,7 @@ public class InitialisingGameState : GameState
         throw new NotImplementedException();
     }
 
-    public override async void Update()
+    public override async Task Update()
     {
         
         if (_controller._players.Count == MaxPlayers)
@@ -80,14 +77,14 @@ public class InitialisingGameState : GameState
         
     }
 
-    private void HandlePlayerDisconnect(object? sender, Player player)
+    private void HandlePlayerDisconnect(object? sender, PlayerConnectionEventArgs e)
     {
-        throw new NotImplementedException();
+        
     }
 
     private void HandleClientConnected(object? sender, ClientConnectedEventArgs e)
     {
-        Console.WriteLine($"New client connected from: {e.clientSocket.RemoteEndPoint}");
+        
     }
     // TODO write a unit test for this
     public async void HandleInitialiseRequest(Packet packet, HHTPClient clientConnection)

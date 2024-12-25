@@ -4,17 +4,17 @@ namespace DiceGame.GameServer.GameRoom.States;
 
 public class FatalErrorGameState : GameState
 {
-    public override void Enter()
+    public override async Task Enter()
     {
         throw new NotImplementedException();
     }
 
-    public override void Exit()
+    public override async Task Exit()
     {
         throw new NotImplementedException();
     }
 
-    public override void Update()
+    public override async Task Update()
     {
         throw new NotImplementedException();
     }

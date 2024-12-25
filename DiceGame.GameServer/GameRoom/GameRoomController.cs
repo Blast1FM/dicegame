@@ -3,6 +3,7 @@ using System.Runtime.InteropServices.Marshalling;
 using DiceGame.GameServer.GameRoom;
 using DiceGame.GameServer.GameRoom.States;
 using DiceGame.Networking;
+using DiceGame.Networking.Protocol;
 
 namespace DiceGame.GameServer;
 
@@ -23,7 +24,7 @@ public class GameRoomController
         _stateManager = new StateManager(states);
 
     }
-    public async void Run()
+    public void Run()
     {
         _listener.ClientConnected += HandleClientConnected;
         PlayerDisconnected += HandlePlayerDisconnect;
@@ -37,10 +38,12 @@ public class GameRoomController
         }
     }
 
+    // TODO Stop the listener if we're up to max players.
     public void HandleClientConnected(object? sender, ClientConnectedEventArgs e)
     {
         _unprocessedConnections.Add(new HHTPClient(e.clientSocket));
         if(_disconnectedPlayers.Count>0) OnPlayerReconnected(new HHTPClient(e.clientSocket));
+        Console.WriteLine($"New client connected from: {e.clientSocket.RemoteEndPoint}");
     }
 
     #region Player disconnect reconnect stuff
@@ -85,6 +88,7 @@ public class GameRoomController
         }
     }
 
+    // TODO Start up the listener again
     private void HandlePlayerDisconnect(object? sender, PlayerConnectionEventArgs e)
     {
         e.Player.IsConnected = false;
@@ -92,7 +96,8 @@ public class GameRoomController
         Console.WriteLine($"Client disconnected: {e.Player.PlayerInfo.Guid}:{e.Player.PlayerInfo.Name}");
         _disconnectedPlayers.Add(e.Player);
     }
-    public void HandlePlayerReconnect(object? sender, HHTPClient client)
+    // TODO Stop the listener if we're back to max players
+    public async void HandlePlayerReconnect(object? sender, HHTPClient client)
     {
         // NOTE - This socket lookup might fail if it gets disposed of, which it probably will - Keep in mind
         var connection = _unprocessedConnections.Where(c => c.Socket.RemoteEndPoint == client.Socket.RemoteEndPoint).FirstOrDefault();
@@ -109,6 +114,9 @@ public class GameRoomController
         else
         {
             // We do not accept new clients here
+            await client.SendPacket(new Packet(StatusCode.Error, ProtocolMethod.GET, 0, "Server is not accepting new connections"));
+            client.CloseConnection();
+            _unprocessedConnections.Remove(client);
         }
     }
 
