@@ -14,19 +14,14 @@ public class InitialisingGameState : GameState
     public InitialisingGameState(GameRoomController controller)
     {
         _controller = controller;
-
-        Dictionary<int, Action<Packet, HHTPClient>> postRequestHandlers = new()
-        {
-            [0] = HandleInitialiseRequest
-        };
-
-        _requestRouter = new RequestRouter(null, postRequestHandlers);
+        _requestRouter = new();
+        List<Action<Packet,HHTPClient>> postHandlers = [HandleInitialiseRequest];
+        _requestRouter.SetPostHandlers(postHandlers);
     }
     public async override Task Enter()
     {
         _controller.PlayerDisconnected += HandlePlayerDisconnect;
         _controller._listener.ClientConnected += HandleClientConnected;
-
     }
 
     public async override Task Exit()

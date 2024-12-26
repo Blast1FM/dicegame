@@ -37,11 +37,25 @@ public class GameRoomController
         }
     }
 
-    // TODO Stop the listener if we're up to max players.
-    public void HandleClientConnected(object? sender, ClientConnectedEventArgs e)
+    public async void HandleClientConnected(object? sender, ClientConnectedEventArgs e)
     {
-        _unprocessedConnections.Add(new HHTPClient(e.clientSocket));
-        if(_disconnectedPlayers.Count>0) OnPlayerReconnected(new HHTPClient(e.clientSocket));
+        HHTPClient client = new HHTPClient(e.clientSocket);
+        _unprocessedConnections.Add(client);
+
+        if(_players.Count>=3)
+        {
+            await RefuseClientConnection(client);
+            return;
+        }
+
+        if(_disconnectedPlayers.Count>0)
+        {
+            OnPlayerReconnected(new HHTPClient(e.clientSocket));
+            return;
+        }
+
+        // TODO Stop the listener if we're up to max players.
+        
         Console.WriteLine($"New client connected from: {e.clientSocket.RemoteEndPoint}");
     }
 
@@ -113,10 +127,15 @@ public class GameRoomController
         else
         {
             // We do not accept new clients here
-            await client.SendPacket(new Packet(StatusCode.Error, ProtocolMethod.GET, 0, "Server is not accepting new connections"));
-            client.CloseConnection();
-            _unprocessedConnections.Remove(client);
+            await RefuseClientConnection(client);
         }
+    }
+
+    public async Task RefuseClientConnection(HHTPClient client)
+    {
+        await client.SendPacket(new Packet(StatusCode.Error, ProtocolMethod.GET, 0, "Server is currently not accepting new connections"));
+        _unprocessedConnections.Remove(client);
+        client.CloseConnection();
     }
 
     #endregion

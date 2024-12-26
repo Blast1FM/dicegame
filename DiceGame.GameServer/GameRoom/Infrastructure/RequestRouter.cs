@@ -23,7 +23,43 @@ public class RequestRouter
         UpdateRequestHandlers = updateRequestHandlers;
         DeleteRequestHandlers = deleteRequestHandlers;
     }
+    public RequestRouter(){}
+    
+    public void SetGetHandlers(List<Action<Packet, HHTPClient>> getHandlers)
+    {
+        GetRequestHandlers ??= [];
+        foreach( var (handler, index) in getHandlers.Select((handler, index) => (handler, index)))
+        {
+            GetRequestHandlers.Add(index,handler);
+        }
+    }
 
+    public void SetPostHandlers(List<Action<Packet,HHTPClient>> postHandlers)
+    {
+        PostRequestHandlers ??= [];
+        foreach( var (handler, index) in postHandlers.Select((handler, index) => (handler, index)))
+        {
+            PostRequestHandlers.Add(index,handler);
+        }
+    }
+
+    public void SetUpdateHandlers(List<Action<Packet,HHTPClient>> updateHandlers)
+    {
+        UpdateRequestHandlers ??= [];
+        foreach(var (handler,index) in updateHandlers.Select((handler,index) => (handler,index)))
+        {
+            UpdateRequestHandlers.Add(index,handler);
+        }
+    }
+
+    public void SetDeleteHandlers(List<Action<Packet,HHTPClient>> deleteHandlers)
+    {
+        DeleteRequestHandlers ??= [];
+        foreach (var (handler,index) in deleteHandlers.Select((handler,index)=>(handler,index)))
+        {
+            DeleteRequestHandlers.Add(index,handler);
+        }
+    }
     public void RouteRequest(Packet packet, HHTPClient clientConnection)
     {
         int resourceIdentifier = packet.Header.ResourceIdentifier;
