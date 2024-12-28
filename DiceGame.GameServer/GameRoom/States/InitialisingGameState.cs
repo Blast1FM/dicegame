@@ -85,16 +85,22 @@ public class InitialisingGameState : GameState
     // TODO write a unit test for this
     public async void HandleInitialiseRequest(Packet packet, HHTPClient clientConnection)
     {
-        PlayerInitMessage initMessage = JsonSerializer.Deserialize<PlayerInitMessage>(packet.Payload) ?? throw new ArgumentNullException($"Player init message is null");
+        try
+        {
+            PlayerInitMessage initMessage = JsonSerializer.Deserialize<PlayerInitMessage>(packet.Payload) ?? throw new ArgumentNullException($"Player init message is null");
 
-        Player player = new(initMessage.PlayerInfo, clientConnection, initMessage.RequestedPayout);
-        
-        Packet okPacket = new(StatusCode.Ok,packet.Header.ProtocolMethod, packet.Header.ResourceIdentifier,"");
-        
-        await clientConnection.SendPacket(okPacket);
+            Player player = new(initMessage.PlayerInfo, clientConnection, initMessage.RequestedPayout);
+            
+            Packet okPacket = new(StatusCode.Ok,packet.Header.ProtocolMethod, packet.Header.ResourceIdentifier,"");
+            
+            await clientConnection.SendPacket(okPacket);
 
-        _controller._players.Add(player);
-        _controller._unprocessedConnections.Remove(clientConnection);
-
+            _controller._players.Add(player);
+            _controller._unprocessedConnections.Remove(clientConnection);
+        }
+        catch (Exception e)
+        {
+            
+        }
     }
 }
