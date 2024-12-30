@@ -10,13 +10,16 @@ public class InitialisingGameState : GameState
 {
     private RequestRouter _requestRouter;
     private GameRoomController _controller;
-    int MaxPlayers {get; set;} = 3;
-    public InitialisingGameState(GameRoomController controller)
+    private Dictionary<HHTPClient, int> _triesPerConnection;
+    private int _maxInitialisationTries;
+    public InitialisingGameState(GameRoomController controller, int maxInitTries)
     {
+        _maxInitialisationTries = maxInitTries;
         _controller = controller;
         _requestRouter = new();
         List<Action<Packet,HHTPClient>> postHandlers = [HandleInitialiseRequest];
         _requestRouter.SetPostHandlers(postHandlers);
+        _triesPerConnection = [];
     }
     public async override Task Enter()
     {
@@ -28,14 +31,13 @@ public class InitialisingGameState : GameState
     {
         _controller.PlayerDisconnected -= HandlePlayerDisconnect;
         _controller._listener.ClientConnected -= HandleClientConnected;
-        // TODO cancel listen task with a cancellation token
-        throw new NotImplementedException();
+
+        await _controller._listener.StopListeningAsync();
     }
 
     public override async Task Update()
     {
-        
-        if (_controller._players.Count == MaxPlayers)
+        if (_controller._players.Count == _controller.MaxPlayerCount)
         {
             _controller._stateManager.ChangeGameState(this, "pregame");
         }
@@ -44,30 +46,28 @@ public class InitialisingGameState : GameState
             // Handle initialisation packets
             foreach (var connection in _controller._unprocessedConnections)
             {
+                if(!_triesPerConnection.ContainsKey(connection))
+                {
+                    _triesPerConnection[connection] = 0;
+                }
+                _triesPerConnection[connection]++;
+
+                if(_triesPerConnection[connection] > _maxInitialisationTries)
+                {
+                    await _controller.RefuseClientConnection(connection, $"Exceeded retry limit: {_maxInitialisationTries}");
+                    continue;
+                }
+
                 Packet maybeInitPacket = await connection.RecievePacket();
                 try
                 {
                     _requestRouter.RouteRequest(maybeInitPacket, connection);
                 }
-                // TODO test for more specific exception
                 catch (Exception e)
                 {
-                    System.Console.WriteLine($"Error:{e.Message}");
-                    string messagePayload = e.Message;
-
-                    Packet errorPacket = new
-                    (
-                        StatusCode.Error, 
-                        maybeInitPacket.Header.ProtocolMethod, 
-                        maybeInitPacket.Header.ResourceIdentifier, 
-                        messagePayload
-                    );
-
-                    await connection.SendPacket(errorPacket);
-
-                    throw;
+                    Console.WriteLine($"Server error when routing request from {connection.Socket.RemoteEndPoint}:{e.Message}");
+                    await connection.SendErrorPacket(maybeInitPacket, $"Failed to route request: {e.Message}");
                 }
-
             }
         }
         
@@ -100,7 +100,7 @@ public class InitialisingGameState : GameState
         }
         catch (Exception e)
         {
-            
+           await clientConnection.SendErrorPacket(packet, $"Server error, could not initialise: {e.Message}");
         }
     }
 }

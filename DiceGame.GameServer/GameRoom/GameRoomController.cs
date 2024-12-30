@@ -13,6 +13,7 @@ public class GameRoomController
     public List<HHTPClient> _unprocessedConnections;
     public List<Player> _disconnectedPlayers;
     public HHTPListener _listener;
+    public int MaxPlayerCount {get;} = 3;
     // TODO Actually create states here instead of having them passed into the constructor, this is temporary to make the warnings fuck off
     public GameRoomController(Dictionary<string, GameState> states)
     {
@@ -28,7 +29,7 @@ public class GameRoomController
         _listener.ClientConnected += HandleClientConnected;
         PlayerDisconnected += HandlePlayerDisconnect;
         PlayerReconnected += HandlePlayerReconnect;
-        _ = Task.Run(_listener.Listen);
+        _listener.StartListening();
         _ = Task.Run(MonitorPlayerConnections);
 
         while(true)
@@ -44,7 +45,7 @@ public class GameRoomController
 
         if(_players.Count>=3)
         {
-            await RefuseClientConnection(client);
+            await RefuseClientConnection(client, "Server is full");
             return;
         }
 
@@ -116,7 +117,7 @@ public class GameRoomController
         var connection = _unprocessedConnections.Where(c => c.Socket.RemoteEndPoint == client.Socket.RemoteEndPoint).FirstOrDefault();
         if (connection != null)
         {
-            var player = _players.Where(c => c.HHTPClientConnection.Socket.RemoteEndPoint == client.Socket.RemoteEndPoint).FirstOrDefault()!;
+            var player = _players.Where(c => c.IPEndPoint == client.Socket.RemoteEndPoint).FirstOrDefault()!;
             player.IsConnected = true;
             player.LastSeen = DateTime.UtcNow;
             player.HHTPClientConnection = client;
@@ -127,13 +128,13 @@ public class GameRoomController
         else
         {
             // We do not accept new clients here
-            await RefuseClientConnection(client);
+            await RefuseClientConnection(client, "Server is full");
         }
     }
 
-    public async Task RefuseClientConnection(HHTPClient client)
+    public async Task RefuseClientConnection(HHTPClient client, string message)
     {
-        await client.SendPacket(new Packet(StatusCode.Error, ProtocolMethod.GET, 0, "Server is currently not accepting new connections"));
+        await client.SendPacket(new Packet(StatusCode.Error, ProtocolMethod.GET, 0, $"Connection refused: {message}"));
         _unprocessedConnections.Remove(client);
         client.CloseConnection();
     }

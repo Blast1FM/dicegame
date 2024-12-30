@@ -1,4 +1,5 @@
 using System.Net.Sockets;
+using System.Security;
 using System.Text;
 using DiceGame.Networking.Protocol;
 
@@ -74,9 +75,32 @@ public class HHTPClient
 
         await _socket.SendAsync(saw);
     }
+    public async Task SendErrorPacket(Packet request, string errorMessage)
+    {
+        Packet errorPacket = new
+        (
+            StatusCode.Error,
+            request.Header.ProtocolMethod,
+            request.Header.ResourceIdentifier,
+            errorMessage
+        );
+
+        await SendPacket(errorPacket);
+    }
     public void CloseConnection()
     {
-        _socket.Close();
+        try
+        {
+            _socket.Close();
+        }
+        catch (SocketException e)
+        {
+            System.Console.WriteLine($"Socket exception: {e.SocketErrorCode}:{e.Message}");
+        }
+        finally
+        {
+            _socket.Dispose();
+        }
     }
     public HHTPClient(Socket socket)
     {
