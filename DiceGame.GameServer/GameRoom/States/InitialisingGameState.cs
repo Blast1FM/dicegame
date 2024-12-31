@@ -10,16 +10,18 @@ public class InitialisingGameState : GameState
 {
     private RequestRouter _requestRouter;
     private GameRoomController _controller;
-    private Dictionary<HHTPClient, int> _triesPerConnection;
-    private int _maxInitialisationTries;
+    private Dictionary<HHTPClient, int> _initialisationTriesPerConnection;
+    private readonly int _maxInitialisationTries;
     public InitialisingGameState(GameRoomController controller, int maxInitTries)
     {
         _maxInitialisationTries = maxInitTries;
         _controller = controller;
         _requestRouter = new();
         List<Action<Packet,HHTPClient>> postHandlers = [HandleInitialiseRequest];
+        List<Action<Packet,HHTPClient>> getHandlers = [HandleGetPlayerStatsRequest];
         _requestRouter.SetPostHandlers(postHandlers);
-        _triesPerConnection = [];
+        _requestRouter.SetGetHandlers(getHandlers);
+        _initialisationTriesPerConnection = [];
     }
     public async override Task Enter()
     {
@@ -46,13 +48,13 @@ public class InitialisingGameState : GameState
             // Handle initialisation packets
             foreach (var connection in _controller._unprocessedConnections)
             {
-                if(!_triesPerConnection.ContainsKey(connection))
+                if(!_initialisationTriesPerConnection.ContainsKey(connection))
                 {
-                    _triesPerConnection[connection] = 0;
+                    _initialisationTriesPerConnection[connection] = 0;
                 }
-                _triesPerConnection[connection]++;
+                _initialisationTriesPerConnection[connection]++;
 
-                if(_triesPerConnection[connection] > _maxInitialisationTries)
+                if(_initialisationTriesPerConnection[connection] > _maxInitialisationTries)
                 {
                     await _controller.RefuseClientConnection(connection, $"Exceeded retry limit: {_maxInitialisationTries}");
                     continue;
@@ -87,9 +89,9 @@ public class InitialisingGameState : GameState
     {
         try
         {
-            PlayerInitMessage initMessage = JsonSerializer.Deserialize<PlayerInitMessage>(packet.Payload) ?? throw new ArgumentNullException($"Player init message is null");
+            PlayerInfoMessage initMessage = JsonSerializer.Deserialize<PlayerInfoMessage>(packet.Payload) ?? throw new ArgumentNullException($"Player init message is null");
 
-            Player player = new(initMessage.PlayerInfo, clientConnection, initMessage.RequestedPayout);
+            Player player = new(initMessage.PlayerInfo, clientConnection);
             
             Packet okPacket = new(StatusCode.Ok,packet.Header.ProtocolMethod, packet.Header.ResourceIdentifier,"");
             
@@ -102,5 +104,10 @@ public class InitialisingGameState : GameState
         {
            await clientConnection.SendErrorPacket(packet, $"Server error, could not initialise: {e.Message}");
         }
+    }
+
+    public async void HandleGetPlayerStatsRequest(Packet packet, HHTPClient clientConnection)
+    {
+        
     }
 }

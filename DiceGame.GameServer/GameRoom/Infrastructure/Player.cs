@@ -11,14 +11,11 @@ public class Player
     public IPEndPoint IPEndPoint {get;}
     public bool IsConnected {get;set;}
     public DateTime LastSeen {get;set;}
-    public decimal RequestedPayout {get; set;}
-
-    public Player(PlayerInfo playerinfo, HHTPClient clientConnection, decimal requestedPayout)
+    public Player(PlayerInfo playerinfo, HHTPClient clientConnection)
     {
         PlayerInfo = playerinfo;
         HHTPClientConnection = clientConnection;
         IPEndPoint = (IPEndPoint)clientConnection.Socket.RemoteEndPoint!;
-        RequestedPayout = requestedPayout;
         IsConnected = true;
         LastSeen = DateTime.Now;
     }
