@@ -15,7 +15,8 @@ public class Player
     {
         PlayerInfo = playerinfo;
         HHTPClientConnection = clientConnection;
-        IPEndPoint = (IPEndPoint)clientConnection.Socket.RemoteEndPoint!;
+        // this horrible abomination is here because i wanted to deep clone it in one line
+        IPEndPoint = (IPEndPoint)IPEndPoint!.Create(((IPEndPoint)clientConnection.Socket.RemoteEndPoint!).Serialize());
         IsConnected = true;
         LastSeen = DateTime.Now;
     }
