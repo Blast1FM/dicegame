@@ -13,6 +13,9 @@ public class GameRoomController
     public List<HHTPClient> _unprocessedConnections;
     public List<Player> _disconnectedPlayers;
     public HHTPListener _listener;
+    public AutoResetEvent _handledClientConnected = new(false);
+    public AutoResetEvent _handledPlayerDisconnected = new(false);
+    public AutoResetEvent _handledPlayedReconnected = new(false);
     public int MaxPlayerCount {get;} = 3;
     // TODO Actually create states here instead of having them passed into the constructor, this is temporary to make the warnings fuck off
     public GameRoomController(Dictionary<string, GameState> states)
@@ -56,8 +59,9 @@ public class GameRoomController
         }
 
         // TODO Stop the listener if we're up to max players.
-        
         Console.WriteLine($"New client connected from: {e.clientSocket.RemoteEndPoint}");
+
+        _handledClientConnected.Set();
     }
 
     #region Player disconnect reconnect stuff
@@ -109,6 +113,7 @@ public class GameRoomController
         e.Player.LastSeen = DateTime.UtcNow;
         Console.WriteLine($"Client disconnected: {e.Player.PlayerInfo.Guid}:{e.Player.PlayerInfo.Name}");
         _disconnectedPlayers.Add(e.Player);
+        _handledPlayerDisconnected.Set();
     }
     // TODO Stop the listener if we're back to max players
     public async void HandlePlayerReconnect(object? sender, HHTPClient client)
@@ -130,6 +135,9 @@ public class GameRoomController
             // We do not accept new clients here
             await RefuseClientConnection(client, "Server is full");
         }
+
+        // TODO Think it over if it should be here
+        _handledPlayedReconnected.Set();
     }
 
     public async Task RefuseClientConnection(HHTPClient client, string message)

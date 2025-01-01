@@ -2,9 +2,9 @@ namespace DiceGame.Common.Messages;
 
 public class ErrorMessage : BaseMessage
 {
-    public string Message {get;set;}
+    public string ErrorMessageText {get;set;}
     public ErrorMessage(string message)
     {
-        Message = message;
+        ErrorMessageText = message;
     }
 }

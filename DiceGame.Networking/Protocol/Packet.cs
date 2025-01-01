@@ -13,10 +13,16 @@ public class Packet
         Payload = payload;
     }
 
+    // TODO I should ensure the payload is encoded in big endian here, and not elsewhere 
     public Packet(StatusCode statusCode, ProtocolMethod method, int resourceIdentifier, string payload)
     {
         PacketHeader header = new(ProtocolVersion.V1, statusCode, method, resourceIdentifier, Encoding.BigEndianUnicode.GetByteCount(payload));
         Header = header;
         Payload = payload;
+    }
+    public static Packet CreateErrorResponsePacket(Packet request, string message)
+    {
+        PacketHeader header = new(ProtocolVersion.V1, StatusCode.Error, request.Header.ProtocolMethod,request.Header.ResourceIdentifier, Encoding.BigEndianUnicode.GetByteCount(message));
+        return new Packet(header, message);
     }
 }

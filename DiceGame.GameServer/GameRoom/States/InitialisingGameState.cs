@@ -3,6 +3,7 @@ using DiceGame.Common.Messages;
 using DiceGame.Networking;
 using DiceGame.Networking.Protocol;
 using DiceGame.GameServer.GameRoom.Infrastructure;
+using DiceGame.Common.Messages.GameRoomMessages;
 
 namespace DiceGame.GameServer.GameRoom.States;
 
@@ -18,7 +19,7 @@ public class InitialisingGameState : GameState
         _controller = controller;
         _requestRouter = new();
         List<Action<Packet,HHTPClient>> postHandlers = [HandleInitialiseRequest];
-        List<Action<Packet,HHTPClient>> getHandlers = [HandleGetPlayerStatsRequest];
+        List<Action<Packet,HHTPClient>> getHandlers = [HandleGetConnectedPlayersRequest];
         _requestRouter.SetPostHandlers(postHandlers);
         _requestRouter.SetGetHandlers(getHandlers);
         _initialisationTriesPerConnection = [];
@@ -102,12 +103,27 @@ public class InitialisingGameState : GameState
         }
         catch (Exception e)
         {
-           await clientConnection.SendErrorPacket(packet, $"Server error, could not initialise: {e.Message}");
+            // Rollbacks shouldn't be neccessary
+            await clientConnection.SendErrorPacket(packet, $"Server error, could not initialise: {e.Message}");
         }
     }
 
-    public async void HandleGetPlayerStatsRequest(Packet packet, HHTPClient clientConnection)
+    public async void HandleGetConnectedPlayersRequest(Packet packet, HHTPClient clientConnection)
     {
-        
+        try
+        {
+            ConnectedPlayerListMessage connectedPlayersPoco = new(_controller._players.Select(p => p.PlayerInfo).ToList());
+            string message = JsonSerializer.Serialize(connectedPlayersPoco); 
+            Packet response = new(StatusCode.Ok, packet.Header.ProtocolMethod, packet.Header.ResourceIdentifier, message);
+            await clientConnection.SendPacket(response);
+        }
+        catch (JsonException e)
+        {
+            Packet errorPacket = new(StatusCode.Error, packet.Header.ProtocolMethod, packet.Header.ResourceIdentifier, $"Serialisation error: {e.Message}");
+        }
+        catch (Exception e)
+        {
+            Packet errorPacket = new(StatusCode.Error, packet.Header.ProtocolMethod, packet.Header.ResourceIdentifier, $"Unhandled server error:{e.Message}");
+        }
     }
 }
