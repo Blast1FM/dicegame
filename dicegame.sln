@@ -11,6 +11,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiceGame.Client", "DiceGame
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiceGame.Common", "DiceGame.Common\DiceGame.Common.csproj", "{7AD6DAEB-1C31-4A10-9894-8977EA93D4B1}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sandbox", "Sandbox", "{1F98A594-EF2C-4EE5-9154-D69961E9480D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "Sandbox\Client\Client.csproj", "{CECCA1E7-2739-40CC-9583-B494E8F8FE42}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Sandbox\Server\Server.csproj", "{64466717-BEB5-4E0D-AB6D-5481FB99DCF0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,11 +39,23 @@ Global
 		{7AD6DAEB-1C31-4A10-9894-8977EA93D4B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7AD6DAEB-1C31-4A10-9894-8977EA93D4B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7AD6DAEB-1C31-4A10-9894-8977EA93D4B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CECCA1E7-2739-40CC-9583-B494E8F8FE42}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CECCA1E7-2739-40CC-9583-B494E8F8FE42}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CECCA1E7-2739-40CC-9583-B494E8F8FE42}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CECCA1E7-2739-40CC-9583-B494E8F8FE42}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64466717-BEB5-4E0D-AB6D-5481FB99DCF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64466717-BEB5-4E0D-AB6D-5481FB99DCF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64466717-BEB5-4E0D-AB6D-5481FB99DCF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64466717-BEB5-4E0D-AB6D-5481FB99DCF0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {07F5D72F-E586-4193-9594-599592177DA9}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{CECCA1E7-2739-40CC-9583-B494E8F8FE42} = {1F98A594-EF2C-4EE5-9154-D69961E9480D}
+		{64466717-BEB5-4E0D-AB6D-5481FB99DCF0} = {1F98A594-EF2C-4EE5-9154-D69961E9480D}
 	EndGlobalSection
 EndGlobal
