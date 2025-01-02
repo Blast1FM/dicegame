@@ -33,23 +33,36 @@ public static class HeaderSerialiser
 
     public static PacketHeader BuildHeaderFromBytes(byte[] potentialHeader)
     {
-        if (potentialHeader.Length != 4) throw new Exception($"Could not get enough bytes for header, expected 4, got {potentialHeader.Length}");
+        if (potentialHeader.Length != 4)
+        {
+            throw new Exception($"Could not get enough bytes for header, expected 4, got {potentialHeader.Length}");
+        }
 
-        if(!Enum.IsDefined(typeof(PacketHeader), potentialHeader[0])) throw new Exception("Unsupported protocol version");
+        if (!Enum.IsDefined(typeof(ProtocolVersion), (int)potentialHeader[0]))
+        {
+            throw new Exception("Unsupported protocol version");
+        }
+
         ProtocolVersion protocolVersion = (ProtocolVersion)potentialHeader[0];
 
-        StatusCode statusCode = (StatusCode)((int)(potentialHeader[1] & 0b10000000)>>7);
+        StatusCode statusCode = (StatusCode)((potentialHeader[1] & 0b10000000) >> 7);
 
         uint maybeMethod = (uint)((potentialHeader[1] & 0b01100000) >> 5);
-        if(!Enum.IsDefined(typeof(ProtocolMethod), maybeMethod)) throw new Exception("Unsupported packet encoding type");
-        ProtocolMethod packetMethod = (ProtocolMethod) maybeMethod;
+        if (!Enum.IsDefined(typeof(ProtocolMethod), (int)maybeMethod))
+        {
+            throw new Exception("Unsupported packet encoding type");
+        }
+        ProtocolMethod packetMethod = (ProtocolMethod)maybeMethod;
 
         uint maybeResourceIdentifier = (uint)(potentialHeader[1] & 0b00011111);
-        if(maybeResourceIdentifier > 31 || maybeResourceIdentifier < 0) throw new Exception("Unsupported resource identifier");
 
-        // Run some check here too - TBD
-        int payloadLength = BinaryPrimitives.ReadUInt16BigEndian(potentialHeader.AsSpan()[2..3]);
-        
+        if (maybeResourceIdentifier > 31 || maybeResourceIdentifier < 0)
+        {
+            throw new Exception("Unsupported resource identifier");
+        }
+
+        int payloadLength = BinaryPrimitives.ReadUInt16BigEndian(potentialHeader.AsSpan()[2..4]);
+
         PacketHeader header = new(protocolVersion, statusCode, packetMethod, (int)maybeResourceIdentifier, payloadLength);
 
         return header;

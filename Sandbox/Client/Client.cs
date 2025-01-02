@@ -7,7 +7,7 @@ namespace Client;
 
 public class Client
 {
-    public async void Run()
+    public async Task Run()
     {
         int port = 5678;
         string ServerIp = "127.0.0.1";

@@ -5,7 +5,7 @@ namespace Server;
 
 public class Server
 {
-    public async void Run()
+    public async Task Run()
     {
         HHTPListener listener = new HHTPListener();
 

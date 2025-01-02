@@ -59,21 +59,38 @@ public class HHTPClient
     }
     public async Task SendPacket(Packet packet)
     {
-        // Serialise
-        byte[] headerBytes = HeaderSerialiser.SerialiseHeader(packet.Header);
-        byte[] payloadBytes = Encoding.BigEndianUnicode.GetBytes(packet.Payload);
-        
-        byte[] data = headerBytes.Concat(payloadBytes).ToArray();
+        try
+        {
+            byte[] headerBytes = HeaderSerialiser.SerialiseHeader(packet.Header);
+            byte[] payloadBytes = Encoding.BigEndianUnicode.GetBytes(packet.Payload);
+            
+            byte[] data = headerBytes.Concat(payloadBytes).ToArray();
 
-        // Split into chunks? Unless it's done automagically
+            // Split into chunks? Unless it's done automagically
 
-        // Send the little shit off
+            // Send the little shit off
 
-        var socketArgs = new SocketAsyncEventArgs();
-        socketArgs.SetBuffer(data, 0, data.Length);
-        var saw = new SocketAwaitable(socketArgs);
+            var socketArgs = new SocketAsyncEventArgs();
+            socketArgs.SetBuffer(data, 0, data.Length);
+            var saw = new SocketAwaitable(socketArgs);
 
-        await _socket.SendAsync(saw);
+            await _socket.SendAsync(saw);
+        }
+        catch (TimeoutException ex)
+        {
+            Console.WriteLine($"TimeoutException during SendPacket: {ex.Message}");
+            throw;
+        }
+        catch (SocketException ex)
+        {
+            Console.WriteLine($"SocketException during SendPacket: {ex.SocketErrorCode}, {ex.Message}");
+            throw;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception during SendPacket: {ex.Message}");
+            throw;
+        }
     }
     public async Task SendErrorPacket(Packet request, string errorMessage)
     {
