@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using DiceGame.Networking;
 using Microsoft.VisualBasic;
 
@@ -11,7 +12,6 @@ class Program
     static void Main(string[] args)
     {
         Client client = new();
-        var task = client.Run();
-        task.Wait();
+        _ = client.Run();
     }
 }
