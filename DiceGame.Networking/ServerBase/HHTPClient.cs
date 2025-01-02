@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Sockets;
 using System.Security;
 using System.Text;
@@ -105,6 +106,11 @@ public class HHTPClient
         );
 
         await SendPacket(errorPacket);
+    }
+
+    public void Connect(EndPoint endPoint)
+    {
+        _socket.Connect((IPEndPoint)endPoint);
     }
     public void CloseConnection()
     {

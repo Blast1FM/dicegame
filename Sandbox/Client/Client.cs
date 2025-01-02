@@ -1,6 +1,9 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
+using System.Text.Json;
+using DiceGame.Common.Messages;
 using DiceGame.Networking;
 
 namespace Client;
@@ -14,14 +17,14 @@ public class Client
         IPAddress ipAddress = IPAddress.Parse(ServerIp);
         IPEndPoint remoteEndPoint = new IPEndPoint(ipAddress, port);
 
-        Socket sender = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-        sender.Connect(remoteEndPoint);
+        Socket serverSocket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+        HHTPClient client = new(serverSocket);
 
+        client.Connect(remoteEndPoint);
         System.Console.WriteLine("Connected!");
-        HHTPClient client = new(sender);
 
         var hello = await client.RecievePacket();
         System.Console.WriteLine("Recieved packet");
-        System.Console.WriteLine(hello.Payload);
+        System.Console.WriteLine(JsonSerializer.Deserialize<BaseMessage>(hello.Payload)!.CreatedAt);
     }
 }
