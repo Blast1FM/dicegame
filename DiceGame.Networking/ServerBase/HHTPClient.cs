@@ -9,6 +9,8 @@ public class HHTPClient
 {
     private readonly Socket _socket;
     public Socket Socket {get => _socket; }
+
+    // TODO Rewrite method to account recieving less than 4 bytes on first recieve operation
     public async Task<Packet> RecievePacket()
     {
         // TODO make buffer length configurable if you can be bothered
