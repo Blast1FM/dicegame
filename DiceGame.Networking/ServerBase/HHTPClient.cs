@@ -110,17 +110,33 @@ public class HHTPClient
 
     public void Connect(EndPoint endPoint)
     {
-        _socket.Connect((IPEndPoint)endPoint);
+        try
+        {
+            _socket.Connect((IPEndPoint)endPoint);
+        }
+        catch (SocketException e)
+        {
+            System.Console.WriteLine($"Socket exception: {e.SocketErrorCode}:{e.Message}");
+            throw;
+        }
+        catch(Exception e)
+        {
+            System.Console.WriteLine($"Unknown exception: {e.Message}");
+            throw;
+        }
+        
     }
     public void CloseConnection()
     {
         try
         {
+            _socket.Shutdown(SocketShutdown.Both);
             _socket.Close();
         }
         catch (SocketException e)
         {
             System.Console.WriteLine($"Socket exception: {e.SocketErrorCode}:{e.Message}");
+            throw;
         }
         finally
         {

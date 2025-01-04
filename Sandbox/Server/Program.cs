@@ -8,8 +8,7 @@ class Program
     static void Main(string[] args)
     {
         Server server = new();
-        server.Run();
+        var serverTask = Task.Run(server.Run);
+        serverTask.Wait();
     }
-
-    
 }

@@ -43,7 +43,7 @@ public class GameRoomController
 
     public async void HandleClientConnected(object? sender, ClientConnectedEventArgs e)
     {
-        HHTPClient client = new HHTPClient(e.clientSocket);
+        HHTPClient client = new HHTPClient(e.ClientSocket);
         _unprocessedConnections.Add(client);
 
         if(_players.Count>=3)
@@ -54,12 +54,12 @@ public class GameRoomController
 
         if(_disconnectedPlayers.Count>0)
         {
-            OnPlayerReconnected(new HHTPClient(e.clientSocket));
+            OnPlayerReconnected(new HHTPClient(e.ClientSocket));
             return;
         }
 
         // TODO Stop the listener if we're up to max players.
-        Console.WriteLine($"New client connected from: {e.clientSocket.RemoteEndPoint}");
+        Console.WriteLine($"New client connected from: {e.ClientSocket.RemoteEndPoint}");
 
         _handledClientConnected.Set();
     }

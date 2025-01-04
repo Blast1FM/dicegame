@@ -16,15 +16,29 @@ public class Client
         string ServerIp = "127.0.0.1";
         IPAddress ipAddress = IPAddress.Parse(ServerIp);
         IPEndPoint remoteEndPoint = new IPEndPoint(ipAddress, port);
-
         Socket serverSocket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
         HHTPClient client = new(serverSocket);
-
-        client.Connect(remoteEndPoint);
-        System.Console.WriteLine("Connected!");
-
-        var hello = await client.RecievePacket();
-        System.Console.WriteLine("Recieved packet");
-        System.Console.WriteLine(JsonSerializer.Deserialize<BaseMessage>(hello.Payload)!.CreatedAt);
+        try
+        {
+            client.Connect(remoteEndPoint);
+            System.Console.WriteLine("Connected!");
+            var hello = await client.RecievePacket();
+            System.Console.WriteLine("Recieved packet");
+            System.Console.WriteLine(JsonSerializer.Deserialize<BaseMessage>(hello.Payload)!.CreatedAt);
+        }
+        catch (SocketException e)
+        {
+            System.Console.WriteLine($"Socket exception: {e.SocketErrorCode}:{e.Message}");
+            throw;
+        }
+        catch (Exception e)
+        {
+            System.Console.WriteLine($"Unknown exception: {e.Message}");
+            throw;
+        }
+        finally
+        {
+            client.CloseConnection();
+        }
     }
 }

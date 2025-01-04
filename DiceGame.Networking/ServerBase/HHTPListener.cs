@@ -37,12 +37,13 @@ public class HHTPListener
         {
             try
             {
-                using var acceptedClientSocket = await socket.AcceptAsync(cancellationToken);
+                var acceptedClientSocket = await socket.AcceptAsync(cancellationToken);
                 var eventArgs = new ClientConnectedEventArgs(acceptedClientSocket);
                 OnClientConnected(eventArgs);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException e)
             {
+                System.Console.WriteLine($"Operation cancelled: {e.Message}");
                 socket.Dispose();
                 break;
             }

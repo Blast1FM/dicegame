@@ -4,10 +4,10 @@ namespace DiceGame.Networking;
 
 public class ClientConnectedEventArgs : EventArgs
 {
-    public Socket clientSocket{get; private set;}
+    public Socket ClientSocket{get; private set;}
 
     public ClientConnectedEventArgs(Socket socket)
     {
-        clientSocket = socket;
+        ClientSocket = socket;
     }
 }
