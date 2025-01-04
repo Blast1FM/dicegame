@@ -12,6 +12,7 @@ class Program
     static void Main(string[] args)
     {
         Client client = new();
-        _ = client.Run();
+        var clientTask = client.Run();
+        clientTask.Wait();
     }
 }
