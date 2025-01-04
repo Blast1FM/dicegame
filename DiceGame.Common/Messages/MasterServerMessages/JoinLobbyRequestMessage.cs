@@ -4,9 +4,9 @@ namespace DiceGame.Common.Messages;
 
 public class JoinLobbyRequestMessage : BaseMessage
 {
-    public GameLobbyEntry Lobby {get;set;}
-    public JoinLobbyRequestMessage(GameLobbyEntry lobby)
+    public Guid LobbyID {get;set;}
+    public JoinLobbyRequestMessage(Guid lobbyId)
     {
-        Lobby = lobby;
+        LobbyID = lobbyId;
     }
 }
