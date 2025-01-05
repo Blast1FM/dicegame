@@ -10,6 +10,7 @@ public class HHTPClient
 {
     private readonly Socket _socket;
     public Socket Socket {get => _socket; }
+    private HeaderSerialiser _headerSerialiser;
 
     // TODO Rewrite method to account recieving less than 4 bytes on first recieve operation
     public async Task<Packet> RecievePacket()
@@ -20,14 +21,38 @@ public class HHTPClient
         args.SetBuffer(recv, 0, recv.Length);
         var saw = new SocketAwaitable(args);
 
+        PacketHeader header;
+        int bufferOffset;
+
         await _socket.ReceiveAsync(saw);
         var bytesRead = args.BytesTransferred;
+        byte[] headerBytes = new byte[4];
 
-        var header = HeaderSerialiser.DeserialiseHeader(recv);
+        if(bytesRead < HeaderSerialiser.HeaderSize)
+        {
+            int totalBytesRead = bytesRead;
+            Buffer.BlockCopy(recv, 0, headerBytes, 0, bytesRead);
+
+            while(totalBytesRead < HeaderSerialiser.HeaderSize)
+            {
+                await _socket.ReceiveAsync(saw);
+                bytesRead = args.BytesTransferred;
+                totalBytesRead += bytesRead;
+
+                Buffer.BlockCopy(recv, 0, headerBytes, totalBytesRead-1, Math.Min(bytesRead, HeaderSerialiser.HeaderSize-totalBytesRead));
+            }
+
+            header = HeaderSerialiser.DeserialiseHeader(headerBytes);
+            bufferOffset = args.BytesTransferred;
+        }
+        else
+        {
+            header = HeaderSerialiser.DeserialiseHeader(recv);
+            // This is to account for the first 4 bytes being the header
+            bufferOffset = 4;
+        }
+
         int payloadLength = header.PayloadLength;
-        
-        // This is to account for the first 4 bytes being the header
-        int bufferOffset = 4;
 
         byte[] payloadBytes = new byte[payloadLength];
         int payloadOffset = 0;
@@ -146,5 +171,6 @@ public class HHTPClient
     public HHTPClient(Socket socket)
     {
         _socket = socket;
+        _headerSerialiser = new();
     }
 }

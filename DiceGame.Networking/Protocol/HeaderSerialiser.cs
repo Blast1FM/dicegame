@@ -2,8 +2,9 @@ using System.Buffers.Binary;
 
 namespace DiceGame.Networking.Protocol;
 
-public static class HeaderSerialiser
+public class HeaderSerialiser
 {
+    public static int HeaderSize {get;} = 4;
     /// <summary>
     /// Will try to deserialise the header from the next 4 bytes in the stream. Will advance the seeker head
     /// </summary>
