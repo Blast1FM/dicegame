@@ -3,6 +3,7 @@ using DiceGame.GameServer.GameRoom.Infrastructure;
 using DiceGame.GameServer.GameRoom.States;
 using DiceGame.Networking;
 using DiceGame.Networking.Protocol;
+using DiceGame.Networking.ServerBase;
 
 namespace DiceGame.GameServer;
 
@@ -43,7 +44,7 @@ public class GameRoomController
 
     public async void HandleClientConnected(object? sender, ClientConnectedEventArgs e)
     {
-        HHTPClient client = new HHTPClient(e.ClientSocket);
+        HHTPClient client = new HHTPClient(new SocketWrapper(e.ClientSocket));
         _unprocessedConnections.Add(client);
 
         if(_players.Count>=3)
@@ -54,7 +55,7 @@ public class GameRoomController
 
         if(_disconnectedPlayers.Count>0)
         {
-            OnPlayerReconnected(new HHTPClient(e.ClientSocket));
+            OnPlayerReconnected(new HHTPClient(new SocketWrapper(e.ClientSocket)));
             return;
         }
 

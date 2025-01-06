@@ -3,51 +3,45 @@ using System.Net.Sockets;
 using System.Security;
 using System.Text;
 using DiceGame.Networking.Protocol;
+using DiceGame.Networking.ServerBase;
 
 namespace DiceGame.Networking;
 
 public class HHTPClient
 {
-    private readonly Socket _socket;
-    public Socket Socket {get => _socket; }
-    private HeaderSerialiser _headerSerialiser;
+    private readonly ISocketWrapper _socket;
+    public Socket Socket {get => _socket.GetSocket; }
 
     // TODO Rewrite method to account recieving less than 4 bytes on first recieve operation
-    public async Task<Packet> RecievePacket()
+    public async Task<Packet> ReceivePacket()
     {
-        // TODO make buffer length configurable if you can be bothered
-        var recv = new byte[1024];
-        var args = new SocketAsyncEventArgs();
-        args.SetBuffer(recv, 0, recv.Length);
-        var saw = new SocketAwaitable(args);
+        var recieveBuffer = new byte[1024];
 
         PacketHeader header;
         int bufferOffset;
 
-        await _socket.ReceiveAsync(saw);
-        var bytesRead = args.BytesTransferred;
+        int bytesRead = await _socket.ReceiveAsync(recieveBuffer);
         byte[] headerBytes = new byte[4];
 
         if(bytesRead < HeaderSerialiser.HeaderSize)
         {
             int totalBytesRead = bytesRead;
-            Buffer.BlockCopy(recv, 0, headerBytes, 0, bytesRead);
+            Buffer.BlockCopy(recieveBuffer, 0, headerBytes, 0, bytesRead);
 
             while(totalBytesRead < HeaderSerialiser.HeaderSize)
             {
-                await _socket.ReceiveAsync(saw);
-                bytesRead = args.BytesTransferred;
+                bytesRead = await _socket.ReceiveAsync(recieveBuffer);
                 totalBytesRead += bytesRead;
 
-                Buffer.BlockCopy(recv, 0, headerBytes, totalBytesRead-1, Math.Min(bytesRead, HeaderSerialiser.HeaderSize-totalBytesRead));
+                Buffer.BlockCopy(recieveBuffer, 0, headerBytes, totalBytesRead-1, Math.Min(bytesRead, HeaderSerialiser.HeaderSize-totalBytesRead));
             }
 
             header = HeaderSerialiser.DeserialiseHeader(headerBytes);
-            bufferOffset = args.BytesTransferred;
+            bufferOffset = bytesRead;
         }
         else
         {
-            header = HeaderSerialiser.DeserialiseHeader(recv);
+            header = HeaderSerialiser.DeserialiseHeader(recieveBuffer);
             // This is to account for the first 4 bytes being the header
             bufferOffset = 4;
         }
@@ -60,24 +54,22 @@ public class HHTPClient
         // TODO WRITE A TEST FOR THIS SHIT
         while (bytesRead > 0 && payloadOffset < payloadLength)
         {
-            int recvLengthOnCurrentIteration = recv.Length - bufferOffset;
+            int recvLengthOnCurrentIteration = recieveBuffer.Length - bufferOffset;
 
             // Recieved more bytes than what we have left in the payload - should discard the remaining garbage
             if(recvLengthOnCurrentIteration > (payloadLength - payloadOffset))
             {
-                Buffer.BlockCopy(recv, bufferOffset, payloadBytes, payloadOffset, payloadLength - payloadOffset);
+                Buffer.BlockCopy(recieveBuffer, bufferOffset, payloadBytes, payloadOffset, payloadLength - payloadOffset);
                 payloadOffset = payloadLength;
             }
             else 
             {
-                Buffer.BlockCopy(recv, bufferOffset, payloadBytes, payloadOffset, recvLengthOnCurrentIteration);
+                Buffer.BlockCopy(recieveBuffer, bufferOffset, payloadBytes, payloadOffset, recvLengthOnCurrentIteration);
                 payloadOffset += recvLengthOnCurrentIteration;
             }
             
             // If recieve async doesn't overwrite from the start i may have a problem here
-            await _socket.ReceiveAsync(saw);
-            bytesRead = args.BytesTransferred;
-
+            bytesRead = await _socket.ReceiveAsync(recieveBuffer);
             bufferOffset = 0;
         }
 
@@ -85,7 +77,7 @@ public class HHTPClient
 
         return new Packet(header, payload);
     }
-    public async Task SendPacket(Packet packet)
+    public async Task<bool> SendPacket(Packet packet)
     {
         try
         {
@@ -97,12 +89,8 @@ public class HHTPClient
             // Split into chunks? Unless it's done automagically
 
             // Send the little shit off
-
-            var socketArgs = new SocketAsyncEventArgs();
-            socketArgs.SetBuffer(data, 0, data.Length);
-            var saw = new SocketAwaitable(socketArgs);
-
-            await _socket.SendAsync(saw);
+            return await _socket.SendAsync(data)==data.Length;
+            
         }
         catch (TimeoutException ex)
         {
@@ -168,9 +156,8 @@ public class HHTPClient
             _socket.Dispose();
         }
     }
-    public HHTPClient(Socket socket)
+    public HHTPClient(ISocketWrapper socket)
     {
         _socket = socket;
-        _headerSerialiser = new();
     }
 }

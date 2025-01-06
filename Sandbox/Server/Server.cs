@@ -3,6 +3,7 @@ using System.Text.Json;
 using DiceGame.Common.Messages;
 using DiceGame.Networking;
 using DiceGame.Networking.Protocol;
+using DiceGame.Networking.ServerBase;
 
 namespace Server;
 
@@ -24,7 +25,7 @@ public class Server
 
     public async void HandleClientConnected(object? sender, ClientConnectedEventArgs e)
     {
-        HHTPClient client = new(e.ClientSocket);
+        HHTPClient client = new(new SocketWrapper(e.ClientSocket));
         if(!client.Socket.Connected) 
         {
             System.Console.WriteLine($"Client disconnected prematurely");

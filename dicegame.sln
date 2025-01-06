@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "Sandbox\Client\Cl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Sandbox\Server\Server.csproj", "{64466717-BEB5-4E0D-AB6D-5481FB99DCF0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiceGame.Networking.Tests", "DiceGame.Networking.Tests\DiceGame.Networking.Tests.csproj", "{D83A5D3C-FD96-4D59-B932-280F0D01B110}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +49,10 @@ Global
 		{64466717-BEB5-4E0D-AB6D-5481FB99DCF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{64466717-BEB5-4E0D-AB6D-5481FB99DCF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{64466717-BEB5-4E0D-AB6D-5481FB99DCF0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D83A5D3C-FD96-4D59-B932-280F0D01B110}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D83A5D3C-FD96-4D59-B932-280F0D01B110}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D83A5D3C-FD96-4D59-B932-280F0D01B110}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D83A5D3C-FD96-4D59-B932-280F0D01B110}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
