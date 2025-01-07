@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text.Json;
 using DiceGame.Common.Messages;
+using DiceGame.Common.Networking;
 using DiceGame.Networking;
 using DiceGame.Networking.ServerBase;
 
@@ -23,9 +24,9 @@ public class Client
         {
             client.Connect(remoteEndPoint);
             System.Console.WriteLine("Connected!");
-            var hello = await client.ReceivePacket();
-            System.Console.WriteLine("Recieved packet");
-            System.Console.WriteLine(JsonSerializer.Deserialize<BaseMessage>(hello.Payload)!.CreatedAt);
+            var bigMessage = await client.ReceiveMessage<ErrorMessage>();
+            System.Console.WriteLine($"Message received");
+            System.Console.WriteLine($"{bigMessage.Message?.ErrorMessageText}");
         }
         catch (SocketException e)
         {
