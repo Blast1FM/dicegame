@@ -12,7 +12,6 @@ public class HHTPClient
     private readonly ISocketWrapper _socket;
     public Socket Socket {get => _socket.GetSocket; }
 
-    // TODO Rewrite method to account recieving less than 4 bytes on first recieve operation
     public async Task<Packet> ReceivePacket()
     {
         var recieveBuffer = new byte[1024];
