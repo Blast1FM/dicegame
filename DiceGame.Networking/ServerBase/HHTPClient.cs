@@ -88,6 +88,7 @@ public class HHTPClient
             // Split into chunks? Unless it's done automagically
 
             // Send the little shit off
+            // TODO check if this makes sense lol
             return await _socket.SendAsync(data)==data.Length;
             
         }

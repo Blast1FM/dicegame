@@ -1,13 +1,15 @@
+using System.Net.NetworkInformation;
 using System.Text.Json;
 using DiceGame.Common.Messages;
 using DiceGame.Networking;
+using DiceGame.Networking.Protocol;
 
 namespace DiceGame.Common.Networking;
 
 public static class HHTPClientExtensions
 {
     public static async Task<CommunicationResult<T>> ReceiveMessage<T>(this HHTPClient client)
-    where T : BaseMessage
+        where T : BaseMessage
     {
         var packet = await client.ReceivePacket();
         try
@@ -29,7 +31,27 @@ public static class HHTPClientExtensions
             System.Console.WriteLine($"Unknown exception: {e.Message}");
             throw;
         }
+    }
 
-
+    public static async Task<bool> SendMessage<T>(this HHTPClient client, T message, StatusCode statusCode, ProtocolMethod method, int resourceIdentifier)
+        where T : BaseMessage
+    {
+        try
+        {
+            var payload = JsonSerializer.Serialize(message);
+            var packet = new Packet(statusCode,method,resourceIdentifier,payload);
+            bool success = await client.SendPacket(packet);
+            return true;
+        }
+        catch(JsonException e)
+        {
+            System.Console.WriteLine($"Failed to serialize payload: {e.Message}");
+            return false;
+        }
+        catch(Exception e)
+        {
+            System.Console.WriteLine($"Unhandled exception: {e.Message}");
+            return false;
+        }
     }
 }
