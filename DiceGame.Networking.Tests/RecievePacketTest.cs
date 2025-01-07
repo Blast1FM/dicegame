@@ -23,7 +23,6 @@ public class RecievePacketTests
 
         int receiveCalls = 0;
 
-
         mockSocket.Setup( socket => socket.ReceiveAsync(It.IsAny<byte[]>()).Result)
         .Callback<byte[]>(buffer => {
             var chunk = receiveBuffer[receiveCalls];
@@ -37,7 +36,14 @@ public class RecievePacketTests
         var packet = await client.ReceivePacket();
 
         // Assert
-        Assert.That(packet.Header, Is.EqualTo(expectedHeader));
+        Assert.Multiple(() =>
+        {
+            Assert.That(packet.Header.ProtocolVersion, Is.EqualTo(expectedHeader.ProtocolVersion));
+            Assert.That(packet.Header.StatusCode, Is.EqualTo(expectedHeader.StatusCode));
+            Assert.That(packet.Header.ProtocolMethod, Is.EqualTo(expectedHeader.ProtocolMethod));
+            Assert.That(packet.Header.ResourceIdentifier, Is.EqualTo(expectedHeader.ResourceIdentifier));
+            Assert.That(packet.Header.PayloadLength, Is.EqualTo(expectedHeader.PayloadLength));
+        });
 
     }
 }
