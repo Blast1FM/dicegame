@@ -41,7 +41,7 @@ public static class HHTPClientExtensions
             var payload = JsonSerializer.Serialize(message);
             var packet = new Packet(statusCode,method,resourceIdentifier,payload);
             bool success = await client.SendPacket(packet);
-            return true;
+            return success;
         }
         catch(JsonException e)
         {
