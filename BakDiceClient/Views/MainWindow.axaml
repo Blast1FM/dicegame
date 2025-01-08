@@ -1,0 +1,52 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:BakDiceClient.ViewModels"
+        xmlns:converters="using:BakDiceClient.Converters"
+        x:Class="BakDiceClient.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="BakDiceClient">
+
+    <Window.Resources>
+        <converters:IntToBoolConverter x:Key="IntToBoolConverter" />
+    </Window.Resources>
+
+    <Window.Background>
+        <ImageBrush Source="/Assets/background.jpg" Stretch="UniformToFill"/>
+    </Window.Background>
+
+    <Grid>
+        <!-- Стейт 0: Подключение к серверу -->
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                    IsVisible="{Binding CurrentState, Converter={StaticResource IntToBoolConverter}, ConverterParameter=0}">
+            <TextBlock Text="Введите IP сервера" FontSize="20" Foreground="White" HorizontalAlignment="Center"/>
+            <TextBox Text="{Binding ServerIp}" Width="300" HorizontalAlignment="Center" Margin="0,10"/>
+            <Button Content="Подключиться" Command="{Binding ConnectCommand}" Width="150" HorizontalAlignment="Center" Margin="0,10"
+                    Background="White" Foreground="Black" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+            <TextBlock Text="{Binding ConnectionStatus}" FontSize="14" Foreground="White" HorizontalAlignment="Center" Margin="0,10"/>
+        </StackPanel>
+
+        <!-- Стейт 1: Главное меню -->
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                    IsVisible="{Binding CurrentState, Converter={StaticResource IntToBoolConverter}, ConverterParameter=1}">
+            <Button Content="Просмотр лобби" Command="{Binding ShowLobbyCommand}" Width="200" Height="50" Margin="0,10"
+                    Background="White" Foreground="Black" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+            <Button Content="Лидерборд" Command="{Binding ShowLeaderboardCommand}" Width="200" Height="50" Margin="0,10"
+                    Background="White" Foreground="Black" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+            <Button Content="Выйти из игры" Command="{Binding ExitCommand}" Width="200" Height="50" Margin="0,10"
+                    Background="White" Foreground="Black" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+        </StackPanel>
+
+        <!-- Стейт 2: Лобби -->
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                    IsVisible="{Binding CurrentState, Converter={StaticResource IntToBoolConverter}, ConverterParameter=2}">
+            <Button Content="Назад" Command="{Binding BackToMenuCommand}" Width="150" Height="50" Margin="0,10"
+                    Background="White" Foreground="Black" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+            <TextBox Text="{Binding LobbyName}" Width="300" HorizontalAlignment="Center" Margin="0,10" Watermark="Введите название лобби"/>
+            <Button Content="Создать лобби" Command="{Binding CreateLobbyCommand}" Width="200" Height="50" Margin="0,10"
+                    Background="White" Foreground="Black" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+            <Button Content="Подключиться к лобби" Command="{Binding JoinLobbyCommand}" Width="200" Height="50" Margin="0,10"
+                    Background="White" Foreground="Black" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+        </StackPanel>
+    </Grid>
+</Window>
