@@ -24,9 +24,10 @@ public class Client
         {
             client.Connect(remoteEndPoint);
             System.Console.WriteLine("Connected!");
-            var bigMessage = await client.ReceiveMessage<ErrorMessage>();
+            var packet = await client.ReceivePacket();
+            var message = packet.TryExtractMessageFromPacket<ErrorMessage>(out ErrorMessage eMessage);
             System.Console.WriteLine($"Message received");
-            System.Console.WriteLine($"{bigMessage.Message?.ErrorMessageText}");
+            System.Console.WriteLine($"{eMessage.ErrorMessageText}");
         }
         catch (SocketException e)
         {
