@@ -4,6 +4,7 @@ using DiceGame.Networking;
 using DiceGame.Networking.Protocol;
 using DiceGame.GameServer.GameRoom.Infrastructure;
 using DiceGame.Common.Messages.GameRoomMessages;
+using DiceGame.Common.Networking;
 
 namespace DiceGame.GameServer.GameRoom.States;
 
@@ -13,13 +14,15 @@ public class InitialisingGameState : GameState
     private GameRoomController _controller;
     private Dictionary<HHTPClient, int> _initialisationTriesPerConnection;
     private readonly int _maxInitialisationTries;
+    private readonly AutoResetEvent allStateChangeMessagesSent = new(false);
+    private int _stateChangeMessagesSent = 0;
     public InitialisingGameState(GameRoomController controller, int maxInitTries)
     {
         _maxInitialisationTries = maxInitTries;
         _controller = controller;
         _requestRouter = new();
         List<Action<Packet,HHTPClient>> postHandlers = [HandleInitialiseRequest];
-        List<Action<Packet,HHTPClient>> getHandlers = [HandleGetConnectedPlayersRequest];
+        List<Action<Packet,HHTPClient>> getHandlers = [HandleGetConnectedPlayersRequest, HandleGetStateStatusRequest];
         _requestRouter.SetPostHandlers(postHandlers);
         _requestRouter.SetGetHandlers(getHandlers);
         _initialisationTriesPerConnection = [];
@@ -40,8 +43,10 @@ public class InitialisingGameState : GameState
 
     public override async Task Update()
     {
+        // This will break if someone disconnects lol
         if (_controller._players.Count == _controller.MaxPlayerCount)
         {
+            allStateChangeMessagesSent.WaitOne();
             _controller._stateManager.ChangeGameState(this, "pregame");
         }
         else
@@ -112,8 +117,8 @@ public class InitialisingGameState : GameState
     {
         try
         {
-            ConnectedPlayerListMessage connectedPlayersPoco = new(_controller._players.Select(p => p.PlayerInfo).ToList());
-            string message = JsonSerializer.Serialize(connectedPlayersPoco); 
+            ConnectedPlayerListMessage connectedPlayersDTO = new(_controller._players.Select(p => p.PlayerInfo).ToList());
+            string message = JsonSerializer.Serialize(connectedPlayersDTO); 
             Packet response = new(StatusCode.Ok, packet.Header.ProtocolMethod, packet.Header.ResourceIdentifier, message);
             await clientConnection.SendPacket(response);
         }
@@ -124,6 +129,26 @@ public class InitialisingGameState : GameState
         catch (Exception e)
         {
             Packet errorPacket = new(StatusCode.Error, packet.Header.ProtocolMethod, packet.Header.ResourceIdentifier, $"Unhandled server error:{e.Message}");
+        }
+    }
+
+    public async void HandleGetStateStatusRequest(Packet packet, HHTPClient clientConnection)
+    {
+        bool changing = _controller._players.Count == _controller.MaxPlayerCount;
+        if(changing)
+        {
+            GameStateStatusMessage message = new("initialising", "pregame");
+            bool success = await clientConnection.SendMessage<GameStateStatusMessage>(message, packet);
+            // Ideally retry logic but cba
+            if (success) _stateChangeMessagesSent++;
+            if(_stateChangeMessagesSent == _controller.MaxPlayerCount)
+            {
+                allStateChangeMessagesSent.Set();
+            }
+        } else
+        {
+            GameStateStatusMessage message = new("initialising", "initialising");
+            bool success = await clientConnection.SendMessage<GameStateStatusMessage>(message, packet);
         }
     }
 }

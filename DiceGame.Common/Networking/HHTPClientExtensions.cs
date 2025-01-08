@@ -54,4 +54,33 @@ public static class HHTPClientExtensions
             return false;
         }
     }
+    /// <summary>
+    /// Send a message of type T to the HHTPClient client, using the headerDonorPacket for its header info
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="client"></param>
+    /// <param name="message"></param>
+    /// <param name="headerDonorPacket"></param>
+    /// <returns></returns>
+    public static async Task<bool> SendMessage<T>(this HHTPClient client, T message, Packet headerDonorPacket)
+        where T : BaseMessage
+    {
+        try
+        {
+            var payload = JsonSerializer.Serialize(message);
+            var outboundPacket = new Packet(headerDonorPacket.Header.StatusCode, headerDonorPacket.Header.ProtocolMethod,headerDonorPacket.Header.ResourceIdentifier,payload);
+            bool success = await client.SendPacket(outboundPacket);
+            return success;
+        }
+        catch(JsonException e)
+        {
+            System.Console.WriteLine($"Failed to serialize payload: {e.Message}");
+            return false;
+        }
+        catch(Exception e)
+        {
+            System.Console.WriteLine($"Unhandled exception: {e.Message}");
+            return false;
+        }
+    }
 }
