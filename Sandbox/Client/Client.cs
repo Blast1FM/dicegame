@@ -4,7 +4,9 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text.Json;
 using DiceGame.Common.Messages;
+using DiceGame.Common.Networking;
 using DiceGame.Networking;
+using DiceGame.Networking.ServerBase;
 
 namespace Client;
 
@@ -17,14 +19,15 @@ public class Client
         IPAddress ipAddress = IPAddress.Parse(ServerIp);
         IPEndPoint remoteEndPoint = new IPEndPoint(ipAddress, port);
         Socket serverSocket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-        HHTPClient client = new(serverSocket);
+        HHTPClient client = new(new SocketWrapper(serverSocket));
         try
         {
             client.Connect(remoteEndPoint);
             System.Console.WriteLine("Connected!");
-            var hello = await client.RecievePacket();
-            System.Console.WriteLine("Recieved packet");
-            System.Console.WriteLine(JsonSerializer.Deserialize<BaseMessage>(hello.Payload)!.CreatedAt);
+            var packet = await client.ReceivePacket();
+            var message = packet.TryExtractMessageFromPacket<ErrorMessage>(out ErrorMessage eMessage);
+            System.Console.WriteLine($"Message received");
+            System.Console.WriteLine($"{eMessage.ErrorMessageText}");
         }
         catch (SocketException e)
         {

@@ -1,8 +1,10 @@
 using System.Net.Sockets;
 using System.Text.Json;
 using DiceGame.Common.Messages;
+using DiceGame.Common.Networking;
 using DiceGame.Networking;
 using DiceGame.Networking.Protocol;
+using DiceGame.Networking.ServerBase;
 
 namespace Server;
 
@@ -24,19 +26,20 @@ public class Server
 
     public async void HandleClientConnected(object? sender, ClientConnectedEventArgs e)
     {
-        HHTPClient client = new(e.ClientSocket);
+        HHTPClient client = new(new SocketWrapper(e.ClientSocket));
         if(!client.Socket.Connected) 
         {
             System.Console.WriteLine($"Client disconnected prematurely");
             return;
         }
         System.Console.WriteLine($"Client connected from {e.ClientSocket.RemoteEndPoint}");
-        BaseMessage message = new();
-        Packet hello = new(StatusCode.Ok, ProtocolMethod.GET, 0, JsonSerializer.Serialize(message));
-        System.Console.WriteLine($"Packet created, message text: {message.CreatedAt}");
+
+        ErrorMessage message = new(new string('a',20000));
+        System.Console.WriteLine($"Packet created, message text: {message.ErrorMessageText}");
         try
         {
-            await client.SendPacket(hello);
+            var result = await client.SendMessage<ErrorMessage>(message, StatusCode.Ok, ProtocolMethod.POST, 0);
+            System.Console.WriteLine($"{result}");
         }
         catch (SocketException ex)
         {

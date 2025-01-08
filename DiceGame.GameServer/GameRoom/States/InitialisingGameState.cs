@@ -61,7 +61,7 @@ public class InitialisingGameState : GameState
                     continue;
                 }
 
-                Packet maybeInitPacket = await connection.RecievePacket();
+                Packet maybeInitPacket = await connection.ReceivePacket();
                 try
                 {
                     _requestRouter.RouteRequest(maybeInitPacket, connection);

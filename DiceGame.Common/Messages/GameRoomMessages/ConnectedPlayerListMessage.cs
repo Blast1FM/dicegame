@@ -6,8 +6,8 @@ namespace DiceGame.Common.Messages.GameRoomMessages;
 public class ConnectedPlayerListMessage : BaseMessage
 {
     List<PlayerInfo> ConnectedPlayers {get;set;}
-    public ConnectedPlayerListMessage(List<PlayerInfo> players)
+    public ConnectedPlayerListMessage(List<PlayerInfo> connectedPlayers)
     {
-        ConnectedPlayers = players;
+        ConnectedPlayers = connectedPlayers;
     }
 }
