@@ -13,10 +13,14 @@ public class PreGameState : GameState
     private RequestRouter _requestRouter;
     private GameRoomController _controller;
     private int _currentRollNumber = 0;
+    private readonly Random _rng;
+    private Dictionary<int, Player> _playerRollOrder;
     public PreGameState(GameRoomController controller)
     {
         _controller = controller;
         _requestRouter = new();
+        _playerRollOrder = new(_controller.MaxPlayerCount);
+        _rng = new();
         List<Action<Packet,HHTPClient>> postHandlers = [HandlePostSendReadyRequest];
         List<Action<Packet,HHTPClient>> getHandlers = [HandleGetConnectedPlayersRequest, HandleGetStateStatusRequest];
         _requestRouter.SetPostHandlers(postHandlers);
@@ -81,5 +85,11 @@ public class PreGameState : GameState
     private void HandleClientConnected(object? sender, ClientConnectedEventArgs e)
     {
         throw new NotImplementedException();
+    }
+
+    public int RollOneDie()
+    {
+        _currentRollNumber++;
+        return _rng.Next(0,7);
     }
 }

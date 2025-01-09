@@ -14,7 +14,7 @@ public class InitialisingGameState : GameState
     private GameRoomController _controller;
     private Dictionary<HHTPClient, int> _initialisationTriesPerConnection;
     private readonly int _maxInitialisationTries;
-    private readonly AutoResetEvent allStateChangeMessagesSent = new(false);
+    private TaskCompletionSource<bool> allStateChangeMessagesSent = new();
     private int _stateChangeMessagesSent = 0;
     public InitialisingGameState(GameRoomController controller, int maxInitTries)
     {
@@ -46,8 +46,8 @@ public class InitialisingGameState : GameState
         // This will break if someone disconnects lol
         if (_controller._players.Count == _controller.MaxPlayerCount)
         {
-            allStateChangeMessagesSent.WaitOne();
-            _controller._stateManager.ChangeGameState(this, "pregame");
+            await allStateChangeMessagesSent.Task;
+            _controller._stateManager.ChangeGameState(this, "pregame");   
         }
         else
         {
@@ -143,7 +143,7 @@ public class InitialisingGameState : GameState
             if (success) _stateChangeMessagesSent++;
             if(_stateChangeMessagesSent == _controller.MaxPlayerCount)
             {
-                allStateChangeMessagesSent.Set();
+                allStateChangeMessagesSent.TrySetResult(true);
             }
         } else
         {
