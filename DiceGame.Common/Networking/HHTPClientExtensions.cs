@@ -6,8 +6,17 @@ using DiceGame.Networking.Protocol;
 
 namespace DiceGame.Common.Networking;
 
+/// <summary>
+/// Extensions class used to simplify HHTP communication within the dicegame project by encapsulating (de)serialisation logic
+/// </summary>
 public static class HHTPClientExtensions
 {
+    /// <summary>
+    /// Receive packet implementation that allows the use of timeouts
+    /// </summary>
+    /// <param name="client"></param>
+    /// <param name="timeout"></param>
+    /// <returns>null if timed out - a Packet instance otherwise </returns>
     public static async Task<Packet?> ReceivePacket(this HHTPClient client, TimeSpan timeout)
     {
         var receiveTask = client.ReceivePacket();
@@ -21,6 +30,12 @@ public static class HHTPClientExtensions
             return null; 
         }
     }
+    /// <summary>
+    /// Method that encapsulates the logic required to receive and deserialise an incoming message over a HHTP packet
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="client"></param>
+    /// <returns>An instance of CommunicationResult</returns>
     public static async Task<CommunicationResult<T>> ReceiveMessage<T>(this HHTPClient client)
         where T : BaseMessage
     {
@@ -46,6 +61,16 @@ public static class HHTPClientExtensions
         }
     }
 
+    /// <summary>
+    /// Method that encapsulates the logic required to send and serialise a given HHTP Packet with a message of type T
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="client"></param>
+    /// <param name="message"></param>
+    /// <param name="statusCode"></param>
+    /// <param name="method"></param>
+    /// <param name="resourceIdentifier"></param>
+    /// <returns>True if successful</returns>
     public static async Task<bool> SendMessage<T>(this HHTPClient client, T message, StatusCode statusCode, ProtocolMethod method, int resourceIdentifier)
         where T : BaseMessage
     {

@@ -7,6 +7,9 @@ using DiceGame.Networking.ServerBase;
 
 namespace DiceGame.GameServer;
 
+/// <summary>
+/// Main class representing the game lobby server.
+/// </summary>
 public class GameRoomController
 {
     public StateManager _stateManager;

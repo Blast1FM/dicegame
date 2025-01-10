@@ -5,6 +5,9 @@ using System.Net.Sockets;
 
 namespace DiceGame.Networking.ServerBase;
 
+/// <summary>
+/// ISocketWrapper implementation, which just calls base socket methods 
+/// </summary>
 public class SocketWrapper : ISocketWrapper
 {
     public SocketWrapper(Socket socket)

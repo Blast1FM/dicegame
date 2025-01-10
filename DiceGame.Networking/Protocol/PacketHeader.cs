@@ -1,5 +1,8 @@
 namespace DiceGame.Networking.Protocol;
 
+/// <summary>
+/// DTO Representing a HHTP packet header
+/// </summary>
 public class PacketHeader
 {
     public ProtocolVersion ProtocolVersion {get;set;}

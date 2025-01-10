@@ -2,6 +2,9 @@ using DiceGame.GameServer.GameRoom.States;
 
 namespace DiceGame.GameServer.GameRoom.Infrastructure;
 
+/// <summary>
+/// State machine used in the game server implementation
+/// </summary>
 public class StateManager
 {
     GameState? _currentState;

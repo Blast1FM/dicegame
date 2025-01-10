@@ -7,11 +7,19 @@ using DiceGame.Networking.ServerBase;
 
 namespace DiceGame.Networking;
 
+/// <summary>
+/// The main class used for HHTP Communications.
+/// </summary>
 public class HHTPClient
 {
     private readonly ISocketWrapper _socket;
     public Socket Socket {get => _socket.GetSocket; }
 
+    /// <summary>
+    /// Base method used to receive HHTP packets 
+    /// </summary>
+    /// <returns>A received packet</returns>
+    /// <exception cref="SocketException"></exception>
     public async Task<Packet> ReceivePacket()
     {
         var receiveBuffer = new byte[1024];
@@ -53,6 +61,11 @@ public class HHTPClient
         return new Packet(header, payload);
     }
 
+    /// <summary>
+    /// Base method used to send HHTP packets.
+    /// </summary>
+    /// <param name="packet"></param>
+    /// <returns>true if successful</returns>
     public async Task<bool> SendPacket(Packet packet)
     {
         try
@@ -62,12 +75,8 @@ public class HHTPClient
             
             byte[] data = headerBytes.Concat(payloadBytes).ToArray();
 
-            // Split into chunks? Unless it's done automagically
-
             // Send the little shit off
-            // TODO check if this makes sense lol
             return await _socket.SendAsync(data)==data.Length;
-            
         }
         catch (TimeoutException ex)
         {
@@ -85,6 +94,12 @@ public class HHTPClient
             throw;
         }
     }
+    /// <summary>
+    /// Convenience method used to send packets with the Status code set to error
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="errorMessage"></param>
+    /// <returns></returns>
     public async Task SendErrorPacket(Packet request, string errorMessage)
     {
         Packet errorPacket = new
@@ -98,6 +113,10 @@ public class HHTPClient
         await SendPacket(errorPacket);
     }
 
+    /// <summary>
+    /// Method used to connect to a remote endpoint
+    /// </summary>
+    /// <param name="endPoint"></param>
     public void Connect(EndPoint endPoint)
     {
         try
@@ -116,6 +135,9 @@ public class HHTPClient
         }
         
     }
+    /// <summary>
+    /// Method to close a socket connection
+    /// </summary>
     public void CloseConnection()
     {
         try

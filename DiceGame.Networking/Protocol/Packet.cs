@@ -2,6 +2,9 @@
 
 namespace DiceGame.Networking.Protocol;
 
+/// <summary>
+/// DTO representing a HHTP packet
+/// </summary>
 public class Packet
 {
     public PacketHeader Header { get; set; }

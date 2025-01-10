@@ -2,6 +2,9 @@ using System.Buffers.Binary;
 
 namespace DiceGame.Networking.Protocol;
 
+/// <summary>
+/// Class used to manage header serialisation/deserialisation to and from binary
+/// </summary>
 public class HeaderSerialiser
 {
     public static int HeaderSize {get;} = 4;
@@ -32,6 +35,12 @@ public class HeaderSerialiser
         return BuildHeaderFromBytes(potentialHeader);
     }
 
+    /// <summary>
+    /// Method that interprets the passed 4 bytes as the HHTP Packet header
+    /// </summary>
+    /// <param name="potentialHeader"></param>
+    /// <returns>A header deserialised from given bytes</returns>
+    /// <exception cref="Exception"></exception>
     public static PacketHeader BuildHeaderFromBytes(byte[] potentialHeader)
     {
         if (potentialHeader.Length != 4)
@@ -69,8 +78,11 @@ public class HeaderSerialiser
         return header;
     }
 
-    // TODO validation
-    // TODO WRITE A FUCKING UNIT TEST FOR THIS, IT WILL BREAK EVERYTHING AND CAUSE HEADACHE
+    /// <summary>
+    /// Serialises a given packet header to binary format, while taking care of the network order
+    /// </summary>
+    /// <param name="header"></param>
+    /// <returns>A 4 byte array containing the packet header in binary format</returns>
     public static byte[] SerialiseHeader(PacketHeader header)
     {
         byte[] bytes = new byte[4];
@@ -91,7 +103,6 @@ public class HeaderSerialiser
         messageMethod = BitConverter.GetBytes((int)header.StatusCode)[0];
         resourceIdentifier = BitConverter.GetBytes((int)header.ResourceIdentifier)[0];
 
-        // TODO double check this
         bytes[3] = (byte)((messageType & 0b00000001) << 7  | ((messageMethod & 0b00000011) << 4) | (resourceIdentifier &0b00011111));
 
         BinaryPrimitives.TryWriteInt16BigEndian(byteSpan,(short)header.PayloadLength);

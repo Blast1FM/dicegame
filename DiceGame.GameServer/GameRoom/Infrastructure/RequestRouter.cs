@@ -3,6 +3,10 @@ using DiceGame.Networking.Protocol;
 
 namespace DiceGame.GameServer.GameRoom.Infrastructure;
 
+/// <summary>
+/// A class used to route requests depending on the inbound packet's header
+/// When setting the request handlers, resource identifiers are assigned to individual handlers depending on the order their order in the list
+/// </summary>
 public class RequestRouter
 {
     public Dictionary<int, Action<Packet, HHTPClient>>? GetRequestHandlers {get;set;}

@@ -4,6 +4,9 @@ using System.Net.Sockets;
 
 namespace DiceGame.Networking.ServerBase;
 
+/// <summary>
+/// Wrapper interface used for HHTP Client implementation
+/// </summary>
 public interface ISocketWrapper : IDisposable
 {
     public Socket GetSocket {get;}
