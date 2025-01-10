@@ -41,7 +41,43 @@ public class Server
     {
         HHTPClient client = new(new SocketWrapper(e.ClientSocket));
         System.Console.WriteLine($"Client connected from {e.ClientSocket.RemoteEndPoint}");
-       
+
+        while(true)
+        {
+            try
+            {
+                // Check if there's data available
+                if (client.Socket.Available > 0)
+                {
+                    await HandleClientRequests(client);
+                }
+                else
+                {
+                    // No data available, wait before polling again
+                    await Task.Delay(100); // Adjust polling interval as needed
+                }
+            }
+            catch (SocketException ex) when (ex.SocketErrorCode == SocketError.WouldBlock || ex.SocketErrorCode == SocketError.IOPending)
+            {
+                // No data available, continue polling
+                await Task.Delay(100);
+            }
+            catch (OperationCanceledException)
+            {
+                // Polling was canceled
+                break;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected error: {ex.Message}");
+                break;
+            }
+        }
+        
+    }
+
+    public async Task HandleClientRequests(HHTPClient client)
+    {
         int retryCount = 0;
         bool success = false;
 
@@ -57,7 +93,8 @@ public class Server
 
             try
             {
-                Packet? inboundPacket = await client.ReceivePacketWithTimeout(TimeSpan.FromSeconds(3));
+                Packet? inboundPacket = await client.ReceivePacket(TimeSpan.FromSeconds(5));
+
                 if(inboundPacket is null)
                 {
                     retryCount++;
@@ -65,7 +102,7 @@ public class Server
                     continue;
                 }
 
-                System.Console.WriteLine($"Received packet from {e.ClientSocket.RemoteEndPoint}");
+                System.Console.WriteLine($"Received packet from {client.Socket.RemoteEndPoint}");
                 _router.RouteRequest(inboundPacket, client);
                 success = true;
             }

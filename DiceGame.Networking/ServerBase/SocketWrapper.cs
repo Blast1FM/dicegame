@@ -1,5 +1,6 @@
 using System;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Sockets;
 
 namespace DiceGame.Networking.ServerBase;
@@ -41,5 +42,9 @@ public class SocketWrapper : ISocketWrapper
     public void Shutdown(SocketShutdown how)
     {
         _socket.Shutdown(how);
+    }
+    public async Task<int> ReceiveAsync(Memory<byte> receiveBuffer, CancellationToken cancellationToken)
+    {
+        return await _socket.ReceiveAsync(receiveBuffer, cancellationToken);
     }
 }

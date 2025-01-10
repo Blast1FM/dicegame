@@ -8,16 +8,17 @@ namespace DiceGame.Common.Networking;
 
 public static class HHTPClientExtensions
 {
-    public static async Task<Packet?> ReceivePacketWithTimeout(this HHTPClient client, TimeSpan timeout)
+    public static async Task<Packet?> ReceivePacket(this HHTPClient client, TimeSpan timeout)
     {
         var receiveTask = client.ReceivePacket();
         if (await Task.WhenAny(receiveTask, Task.Delay(timeout)) == receiveTask)
         {
-            return await receiveTask; // Packet received successfully
+            return await receiveTask;
         }
         else
         {
-            return null; // Timeout occurred
+            // Timeout 
+            return null; 
         }
     }
     public static async Task<CommunicationResult<T>> ReceiveMessage<T>(this HHTPClient client)

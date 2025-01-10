@@ -21,15 +21,13 @@ public class Client
         HHTPClient server = new(new SocketWrapper(serverSocket));
         try
         {
-            CurrentTimeMessage currentTimeRequest = new();
+            CurrentTimeMessage currentTimeRequest = new(DateTime.Now);
             server.Connect(remoteEndPoint);
             System.Console.WriteLine("Connected!");
 
             bool success = await server.SendMessage<CurrentTimeMessage>(currentTimeRequest, StatusCode.Ok, ProtocolMethod.GET, 0);
 
-            bool success2 = await server.SendMessage<CurrentTimeMessage>(currentTimeRequest, StatusCode.Ok, ProtocolMethod.GET, 0);
-
-            if(success2)
+            if(success)
             {
                 System.Console.WriteLine($"Request sent");
                 var currentTimeReponseResult = await server.ReceiveMessage<CurrentTimeMessage>();

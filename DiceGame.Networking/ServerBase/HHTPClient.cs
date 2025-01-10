@@ -14,68 +14,45 @@ public class HHTPClient
 
     public async Task<Packet> ReceivePacket()
     {
-        var recieveBuffer = new byte[1024];
+        var receiveBuffer = new byte[1024];
+        byte[] headerBytes = new byte[HeaderSerialiser.HeaderSize];
+        int headerBytesRead = 0;
 
-        PacketHeader header;
-        int bufferOffset;
-
-        int bytesRead = await _socket.ReceiveAsync(recieveBuffer);
-        byte[] headerBytes = new byte[4];
-
-        if(bytesRead < HeaderSerialiser.HeaderSize)
+        // Read the header
+        while (headerBytesRead < HeaderSerialiser.HeaderSize)
         {
-            int totalBytesRead = bytesRead;
-            Buffer.BlockCopy(recieveBuffer, 0, headerBytes, 0, bytesRead);
-
-            while(totalBytesRead < HeaderSerialiser.HeaderSize)
+            int bytesRead = await _socket.ReceiveAsync(receiveBuffer.AsMemory(headerBytesRead, HeaderSerialiser.HeaderSize - headerBytesRead),CancellationToken.None);
+            if (bytesRead == 0)
             {
-                bytesRead = await _socket.ReceiveAsync(recieveBuffer);
-                totalBytesRead += bytesRead;
-
-                Buffer.BlockCopy(recieveBuffer, 0, headerBytes, totalBytesRead-1, Math.Min(bytesRead, HeaderSerialiser.HeaderSize-totalBytesRead));
+                throw new SocketException((int)SocketError.ConnectionReset);
             }
-
-            header = HeaderSerialiser.DeserialiseHeader(headerBytes);
-            bufferOffset = bytesRead;
-        }
-        else
-        {
-            header = HeaderSerialiser.DeserialiseHeader(recieveBuffer);
-            // This is to account for the first 4 bytes being the header
-            bufferOffset = 4;
+            Buffer.BlockCopy(receiveBuffer, 0, headerBytes, headerBytesRead, bytesRead);
+            headerBytesRead += bytesRead;
         }
 
+        PacketHeader header = HeaderSerialiser.DeserialiseHeader(headerBytes);
+
+        // Read the payload
         int payloadLength = header.PayloadLength;
-
         byte[] payloadBytes = new byte[payloadLength];
-        int payloadOffset = 0;
+        int payloadBytesRead = 0;
 
-        // TODO WRITE A TEST FOR THIS SHIT
-        while (bytesRead > 0 && payloadOffset < payloadLength)
+        while (payloadBytesRead < payloadLength)
         {
-            int recvLengthOnCurrentIteration = recieveBuffer.Length - bufferOffset;
-
-            // Recieved more bytes than what we have left in the payload - should discard the remaining garbage
-            if(recvLengthOnCurrentIteration > (payloadLength - payloadOffset))
+            int bytesToRead = Math.Min(receiveBuffer.Length, payloadLength - payloadBytesRead);
+            int bytesRead = await _socket.ReceiveAsync(receiveBuffer.AsMemory(0, bytesToRead), CancellationToken.None);
+            if (bytesRead == 0)
             {
-                Buffer.BlockCopy(recieveBuffer, bufferOffset, payloadBytes, payloadOffset, payloadLength - payloadOffset);
-                payloadOffset = payloadLength;
+                throw new SocketException((int)SocketError.ConnectionReset);
             }
-            else 
-            {
-                Buffer.BlockCopy(recieveBuffer, bufferOffset, payloadBytes, payloadOffset, recvLengthOnCurrentIteration);
-                payloadOffset += recvLengthOnCurrentIteration;
-            }
-            
-            // If recieve async doesn't overwrite from the start i may have a problem here
-            bytesRead = await _socket.ReceiveAsync(recieveBuffer);
-            bufferOffset = 0;
+            Buffer.BlockCopy(receiveBuffer, 0, payloadBytes, payloadBytesRead, bytesRead);
+            payloadBytesRead += bytesRead;
         }
 
         string payload = Encoding.BigEndianUnicode.GetString(payloadBytes);
-
         return new Packet(header, payload);
     }
+
     public async Task<bool> SendPacket(Packet packet)
     {
         try
