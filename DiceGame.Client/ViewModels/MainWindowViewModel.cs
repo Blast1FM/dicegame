@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Reactive;
 using System.Threading.Tasks;
 using DiceGame.Networking;
+using DiceGame.Networking.ServerBase;
 
 namespace BakDiceClient.ViewModels
 {
@@ -65,7 +66,7 @@ namespace BakDiceClient.ViewModels
             BackToMenuCommand.Subscribe(state => CurrentState = state);
 
             // Создаем пустой клиент
-            _client = new HHTPClient(new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
+            _client = new HHTPClient(new SocketWrapper(new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)));
         }
 
         private async Task ConnectToServerAsync()

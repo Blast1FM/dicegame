@@ -23,7 +23,13 @@ public class RequestRouter
         UpdateRequestHandlers = updateRequestHandlers;
         DeleteRequestHandlers = deleteRequestHandlers;
     }
-    public RequestRouter(){}
+    public RequestRouter()
+    {
+        GetRequestHandlers = [];
+        PostRequestHandlers = [];
+        UpdateRequestHandlers = [];
+        DeleteRequestHandlers = [];
+    }
     
     public void SetGetHandlers(List<Action<Packet, HHTPClient>> getHandlers)
     {
