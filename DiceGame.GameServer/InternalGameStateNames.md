@@ -1,8 +1,11 @@
-## Names used in game state status messages
-# Format: Classname:name_used_in_status_messages
+# Internal names used in game state status messages  
 
-InitialisingGameState:initialising
-PreGameState:pregame
-GameInProgressState:main
-GameCleanupState:end
+Format: className:nameUsedInStatusMessages
+
+```
+InitialisingGameState:initialising  
+PreGameState:pregame  
+GameInProgressState:main  
+GameCleanupState:end  
 FatalErrorGameState:error
+```
