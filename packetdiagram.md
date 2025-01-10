@@ -1,9 +1,9 @@
-## Packet Structure
-# Big endian because the netowork order gods said so
+# Packet Structure
+Big endian because the netowork order gods said so
 
-V1
-
-MSB                               LSB
+# V1
+```
+MSB                                    LSB
 ___________________________________________
 |12345678| 1   23  45678|12345678|12345678|
 ◦--------◦--------------◦--------◦--------◦
@@ -11,10 +11,11 @@ ___________________________________________
 ◦--------◦--------------◦-----------------◦
 |         len bytes of data               |
 ◦-----------------------------------------◦
+```
 
-Octet 1 - Protocol version
-Octet 2 - Split between message type, method and resource identifier
-Octet 3 - Payload length in bytes
+- Octet 1 - Protocol version  
+- Octet 2 - Split between message type, method and resource identifier  
+- Octet 3 - Payload length in bytes
 
 # Status Code
 - 0 - Ok
@@ -32,7 +33,7 @@ Octet 3 - Payload length in bytes
 # Payload length
 - Payload length in bytes.
 
-~~V2~~ binned in favour of polling
+# ~~V2~~ binned in favour of polling
 
 # Different packet structure for a client request and server message packet
 
@@ -43,7 +44,7 @@ There are two expected modes of operation:
 The client requests to upgrad to this mode by sending a packet with all the header's 2nd octet bits set.
 
 - Request packet structure
-
+```
 MSB                                    LSB
 __________________________________________
 |12345678|  12  |345678|12345678|12345678|
@@ -52,10 +53,10 @@ __________________________________________
 ◦--------◦-------------◦-----------------◦
 |        len bytes of data               |
 ◦----------------------------------------◦
-
-Octet 1 - Protocol version
-Octet 2 - Split between request method and resource identifier
-Octet 3 - Payload length in bytes
+```
+Octet 1 - Protocol version  
+Octet 2 - Split between request method and resource identifier  
+Octet 3 - Payload length in bytes  
 
 # Method type
 - 00 - 0 - GET
@@ -70,7 +71,7 @@ Octet 3 - Payload length in bytes
 - Payload length in bytes.
 
 - Server message packet structure
-
+```
 MSB                                  LSB
 ________________________________________
 |12345678| 12345678  |12345678|12345678|
@@ -79,7 +80,7 @@ ________________________________________
 ◦--------◦-----------◦-----------------◦
 |        len bytes of data             |
 ◦--------------------------------------◦
-
+```
 Octet 1 - Protocol version
 Octet 2 - Status code
 Octet 3 - Payload length in bytes
