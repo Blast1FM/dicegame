@@ -128,7 +128,7 @@ public class Server
             ErrorMessage errorMessage = new($"Unable to generate new token for an existing client");
             await client.SendMessage<ErrorMessage>(errorMessage, packet);
             return;
-        }        
+        }
         Guid clientToken = new();
         try
         {
@@ -169,11 +169,15 @@ public class Server
         }
 
         bool valid = CheckIfSessionTokenIsValid((Guid)message.SessionToken, clientConnection);
-
+        if(!valid)
+        {
+            ErrorMessage errorMessage = new($"Session token can't be null for this endpoint");
+            bool success = await clientConnection.SendMessage<ErrorMessage>(errorMessage, packet);
+            return;
+        }
         try
         {
             CurrentTimeMessage response = new((Guid)message.SessionToken, DateTime.Now);
-            
             bool success = await TrySendMessage<CurrentTimeMessage>(response, packet, clientConnection);
             
         }

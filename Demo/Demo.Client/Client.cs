@@ -47,9 +47,8 @@ public class Client
                 {
                     if (responsePacket.TryExtractMessageFromPacket<SessionTokenMessage>(out var responseMessage))
                     {
-                        Console.WriteLine($"Session token received: {message}");
+                        Console.WriteLine($"Session token received: {responseMessage.SessionToken}");
                         sessionToken = (Guid)message.SessionToken!;
-                        // Отправка случайного числа на сервер
                         
                         CurrentTimeMessage timeRequest = new();
                         await hhtpClient.SendMessage<CurrentTimeMessage>(timeRequest, StatusCode.Ok, ProtocolMethod.GET, 1);
