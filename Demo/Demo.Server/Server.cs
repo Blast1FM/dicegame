@@ -14,6 +14,7 @@ public class Server
 {
     public RequestRouter _router;
     public HHTPListener _listener;
+    public Dictionary<Guid, HHTPClient> _clientTokens;
     public int _maxRetryCount = 5;
     public TimeSpan _retryInterval = TimeSpan.FromSeconds(5);
 
@@ -114,8 +115,50 @@ public class Server
         }
     }
 
+    public bool CheckIfSessionTokenIsValid(Guid guid, HHTPClient client)
+    {
+        return _clientTokens.ContainsKey(guid); 
+    }
+
+    public async void HandleGenerateSessionTokenRequest(Packet packet, HHTPClient client)
+    {
+        if(_clientTokens.ContainsValue(client))
+        {
+            ErrorMessage errorMessage = new($"Unable to generate new token for an existing client");
+            await client.SendMessage<ErrorMessage>(errorMessage, packet);
+            return;
+        }        
+        Guid clientToken = new();
+        try
+        {
+            SessionTokenMessage sessionTokenResponse = new(clientToken);
+            bool success = await TrySendMessage<SessionTokenMessage>(sessionTokenResponse, packet, client);
+            _clientTokens.Add(clientToken, client);
+        }
+        catch (JsonException e)
+        {
+            ErrorMessage errorMessage = new($"Server json error: {e.Message}");
+            bool success = await client.SendMessage<ErrorMessage>(errorMessage, packet);
+        }
+        catch (SocketException e)
+        {
+            System.Console.WriteLine($"Socket error: {e.ErrorCode}:{e.Message}");
+            if(e.SocketErrorCode == SocketError.ConnectionReset || e.SocketErrorCode == SocketError.NotConnected)
+            {
+                return;
+            }
+        }
+        catch (Exception e)
+        {
+            ErrorMessage errorMessage = new($"Unknown server error: {e.Message}");
+            bool success = await client.SendMessage<ErrorMessage>(errorMessage, packet);
+        }
+    }
+
     public async void HandleGetCurrentTimeRequest(Packet packet, HHTPClient clientConnection)
     {
+        packet.TryExtractMessageFromPacket<CurrentTimeMessage>(out CurrentTimeMessage message);
+        bool valid = CheckIfSessionTokenIsValid(message)
         try
         {
             CurrentTimeMessage response = new(DateTime.Now);
