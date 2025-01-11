@@ -1,5 +1,9 @@
+using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
 using Demo.Common.Messages;
 using DiceGame.Common.Messages;
 using DiceGame.Common.Networking;
@@ -10,48 +14,75 @@ using DiceGame.Networking.ServerBase;
 namespace Demo.Client;
 
 public class Client
-{
-    public async Task Run()
+    {
+        public Guid sessionToken;
+        public async Task Run()
     {
         int port = 5678;
-        string ServerIp = "127.0.0.1";
-        IPAddress ipAddress = IPAddress.Parse(ServerIp);
+        string serverIp = "127.0.0.1";
+        IPAddress ipAddress = IPAddress.Parse(serverIp);
         IPEndPoint remoteEndPoint = new(ipAddress, port);
+
+        // Создание сокета и HHTPClient
         Socket serverSocket = new(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-        HHTPClient server = new(new SocketWrapper(serverSocket));
+        HHTPClient hhtpClient = new(new SocketWrapper(serverSocket));
+
         try
         {
-            CurrentTimeMessage currentTimeRequest = new(DateTime.Now);
-            server.Connect(remoteEndPoint);
-            System.Console.WriteLine("Connected!");
+            // Подключение к серверу
+            hhtpClient.Connect(remoteEndPoint);
+            Console.WriteLine("Connected to the server!");
 
-            bool success = await server.SendMessage<CurrentTimeMessage>(currentTimeRequest, StatusCode.Ok, ProtocolMethod.GET, 0);
+            // Запрос токена сессии
+            SessionTokenMessage message = new SessionTokenMessage(Guid.NewGuid());
+            bool success = await hhtpClient.SendMessage<SessionTokenMessage>(message, StatusCode.Ok, ProtocolMethod.POST, 0);
 
-            if(success)
+            if (success)
             {
-                System.Console.WriteLine($"Request sent");
-                var currentTimeReponseResult = await server.ReceiveMessage<CurrentTimeMessage>();
-                if(currentTimeReponseResult.Result == DataExchangeResult.Ok)
+                Console.WriteLine("Session token request sent.");
+
+                // Получение токена
+                Packet responsePacket = await hhtpClient.ReceivePacket();
+                if (responsePacket.Header.StatusCode == StatusCode.Ok)
                 {
-                    System.Console.WriteLine($"Message received");
-                    System.Console.WriteLine($"Current time: {currentTimeReponseResult.Message!.CurrentTime}");
+                    if (responsePacket.TryExtractMessageFromPacket<SessionTokenMessage>(out var responseMessage))
+                    {
+                        Console.WriteLine($"Session token received: {message}");
+                        sessionToken = (Guid)message.SessionToken!;
+                        // Отправка случайного числа на сервер
+                        
+                        CurrentTimeMessage timeRequest = new();
+                        await hhtpClient.SendMessage<CurrentTimeMessage>(timeRequest, StatusCode.Ok, ProtocolMethod.GET, 1);
+                        
+                    }
+                    else
+                    {
+                        Console.WriteLine("Failed to extract session token.");
+                    }
                 }
+                else
+                {
+                    Console.WriteLine($"Server returned error: {responsePacket.Payload}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Failed to send session token request.");
             }
         }
         catch (SocketException e)
         {
-            System.Console.WriteLine($"Socket exception: {e.SocketErrorCode}:{e.Message}");
-            throw;
+            Console.WriteLine($"Socket exception: {e.SocketErrorCode}: {e.Message}");
         }
         catch (Exception e)
         {
-            System.Console.WriteLine($"Unknown exception: {e.Message}");
-            throw;
+            Console.WriteLine($"Unknown exception: {e.Message}");
         }
         finally
         {
-            await Task.Delay(Timeout.Infinite);
-            server.CloseConnection();
+            // Закрытие соединения
+            hhtpClient.CloseConnection();
+            Console.WriteLine("Connection closed.");
         }
     }
 }
