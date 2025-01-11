@@ -29,7 +29,7 @@ public class Server
 
         _listener.ClientConnected += HandleClientConnected;
 
-        List<Action<Packet,HHTPClient>> getHandlers = [HandleGetCurrentTimeRequest];
+        List<Action<Packet,HHTPClient>> getHandlers = [HandleGenerateSessionTokenRequest,HandleGetCurrentTimeRequest];
         _router.SetGetHandlers(getHandlers);
 
         System.Console.WriteLine("Started listening");
@@ -145,6 +145,7 @@ public class Server
             System.Console.WriteLine($"Socket error: {e.ErrorCode}:{e.Message}");
             if(e.SocketErrorCode == SocketError.ConnectionReset || e.SocketErrorCode == SocketError.NotConnected)
             {
+                RemoveClientToken(client);
                 return;
             }
         }
@@ -158,10 +159,19 @@ public class Server
     public async void HandleGetCurrentTimeRequest(Packet packet, HHTPClient clientConnection)
     {
         packet.TryExtractMessageFromPacket<CurrentTimeMessage>(out CurrentTimeMessage message);
-        bool valid = CheckIfSessionTokenIsValid(message)
+
+        if(message.SessionToken==null)
+        {
+            ErrorMessage errorMessage = new($"Session token can't be null for this endpoint");
+            bool success = await clientConnection.SendMessage<ErrorMessage>(errorMessage, packet);
+            return;
+        }
+
+        bool valid = CheckIfSessionTokenIsValid((Guid)message.SessionToken, clientConnection);
+
         try
         {
-            CurrentTimeMessage response = new(DateTime.Now);
+            CurrentTimeMessage response = new((Guid)message.SessionToken, DateTime.Now);
             
             bool success = await TrySendMessage<CurrentTimeMessage>(response, packet, clientConnection);
             
@@ -176,6 +186,7 @@ public class Server
             System.Console.WriteLine($"Socket error: {e.ErrorCode}:{e.Message}");
             if(e.SocketErrorCode == SocketError.ConnectionReset || e.SocketErrorCode == SocketError.NotConnected)
             {
+                RemoveClientToken(clientConnection);
                 return;
             }
         }
@@ -202,6 +213,7 @@ public class Server
             System.Console.WriteLine($"Socket error: {e.ErrorCode}:{e.Message}");
             if(e.SocketErrorCode == SocketError.ConnectionReset || e.SocketErrorCode == SocketError.NotConnected)
             {
+                RemoveClientToken(client);
                 return false;
             }
         }
@@ -226,4 +238,9 @@ public class Server
         var rng = new Random();
 
     }
+
+    public void RemoveClientToken(HHTPClient client)
+    {
+        _clientTokens.Remove(_clientTokens.FirstOrDefault(x=> x.Value == client).Key);
+    } 
 }
