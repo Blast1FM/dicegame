@@ -37,6 +37,34 @@ public class Client
                     System.Console.WriteLine($"Current time: {currentTimeReponseResult.Message!.CurrentTime}");
                 }
             }
+
+            RandomNumberMessage randomNumberRequest = new(0);
+            success = await server.SendMessage<RandomNumberMessage>(randomNumberRequest, StatusCode.Ok, ProtocolMethod.GET, 1);
+
+            if(success)
+            {
+                System.Console.WriteLine($"Request sent");
+                var currentTimeReponseResult = await server.ReceiveMessage<RandomNumberMessage>();
+                if(currentTimeReponseResult.Result == DataExchangeResult.Ok)
+                {
+                    System.Console.WriteLine($"Message received");
+                    System.Console.WriteLine($"Random number: {currentTimeReponseResult.Message!.Number}");
+                }
+            }
+
+            ASCIIArtMessage artRequest = new("a","b");
+            success = await server.SendMessage<ASCIIArtMessage>(artRequest, StatusCode.Ok, ProtocolMethod.GET, 2);
+
+            if(success)
+            {
+                System.Console.WriteLine($"Request sent");
+                var currentTimeReponseResult = await server.ReceiveMessage<ASCIIArtMessage>();
+                if(currentTimeReponseResult.Result == DataExchangeResult.Ok)
+                {
+                    System.Console.WriteLine($"Message received");
+                    System.Console.WriteLine($"Ascii art:\n{currentTimeReponseResult.Message!.Art}");
+                }
+            }
         }
         catch (SocketException e)
         {

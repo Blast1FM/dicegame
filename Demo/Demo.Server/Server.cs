@@ -116,34 +116,11 @@ public class Server
 
     public async void HandleGetCurrentTimeRequest(Packet packet, HHTPClient clientConnection)
     {
-        try
-        {
-            CurrentTimeMessage response = new(DateTime.Now);
-            
-            bool success = await TrySendMessage<CurrentTimeMessage>(response, packet, clientConnection);
-            
-        }
-        catch (JsonException e)
-        {
-            ErrorMessage errorMessage = new($"Server json error: {e.Message}");
-            bool success = await clientConnection.SendMessage<ErrorMessage>(errorMessage, packet);
-        }
-        catch (SocketException e)
-        {
-            System.Console.WriteLine($"Socket error: {e.ErrorCode}:{e.Message}");
-            if(e.SocketErrorCode == SocketError.ConnectionReset || e.SocketErrorCode == SocketError.NotConnected)
-            {
-                return;
-            }
-        }
-        catch (Exception e)
-        {
-            ErrorMessage errorMessage = new($"Unknown server error: {e.Message}");
-            bool success = await clientConnection.SendMessage<ErrorMessage>(errorMessage, packet);
-        }
+        CurrentTimeMessage response = new(DateTime.Now);       
+        bool success = await TrySendMessage<CurrentTimeMessage>(response, packet, clientConnection);
     }
     public async Task<bool> TrySendMessage<T>(T message, Packet packet, HHTPClient client)
-    where T: BaseMessage
+        where T: BaseMessage
     {
         try
         {
@@ -173,14 +150,13 @@ public class Server
     public async void HandleGetASCIIArtRequest(Packet packet, HHTPClient client)
     {
         ASCIIArtMessage message = new("AAAAAA",ASCIIArt.GetArtString());
-
-        
-
+        bool success = await TrySendMessage<ASCIIArtMessage>(message, packet, client);   
     }
 
     public async void HandleGetRandomNumberRequest(Packet packet, HHTPClient client)
     {
         var rng = new Random();
-
+        RandomNumberMessage message = new(rng.Next());
+        bool success = await TrySendMessage<RandomNumberMessage>(message, packet, client);
     }
 }
