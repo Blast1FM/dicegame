@@ -118,13 +118,10 @@ public class Server
     {
         try
         {
-            bool success = false;
-            int retryCount = 0;
             CurrentTimeMessage response = new(DateTime.Now);
-            while(!success || retryCount < _maxRetryCount)
-            {
-                success = await clientConnection.SendMessage<CurrentTimeMessage>(response, packet);
-            }
+            
+            bool success = await TrySendMessage<CurrentTimeMessage>(response, packet, clientConnection);
+            
         }
         catch (JsonException e)
         {
@@ -144,5 +141,46 @@ public class Server
             ErrorMessage errorMessage = new($"Unknown server error: {e.Message}");
             bool success = await clientConnection.SendMessage<ErrorMessage>(errorMessage, packet);
         }
+    }
+    public async Task<bool> TrySendMessage<T>(T message, Packet packet, HHTPClient client)
+    where T: BaseMessage
+    {
+        try
+        {
+            return await client.SendMessage<T>(message, packet);            
+        }
+        catch (JsonException e)
+        {
+            ErrorMessage errorMessage = new($"Server json error: {e.Message}");
+            bool success = await client.SendMessage<ErrorMessage>(errorMessage, packet);
+        }
+        catch (SocketException e)
+        {
+            System.Console.WriteLine($"Socket error: {e.ErrorCode}:{e.Message}");
+            if(e.SocketErrorCode == SocketError.ConnectionReset || e.SocketErrorCode == SocketError.NotConnected)
+            {
+                return false;
+            }
+        }
+        catch (Exception e)
+        {
+            ErrorMessage errorMessage = new($"Unknown server error: {e.Message}");
+            bool success = await client.SendMessage<ErrorMessage>(errorMessage, packet);
+        }
+
+        return false;
+    }
+    public async void HandleGetASCIIArtRequest(Packet packet, HHTPClient client)
+    {
+        ASCIIArtMessage message = new("AAAAAA",ASCIIArt.GetArtString());
+
+        
+
+    }
+
+    public async void HandleGetRandomNumberRequest(Packet packet, HHTPClient client)
+    {
+        var rng = new Random();
+
     }
 }
