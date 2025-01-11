@@ -28,9 +28,10 @@ public class Server
 
         _listener.ClientConnected += HandleClientConnected;
 
-        List<Action<Packet,HHTPClient>> getHandlers = [HandleGetCurrentTimeRequest];
+        List<Action<Packet,HHTPClient>> getHandlers = [HandleGetCurrentTimeRequest, HandleGetRandomNumberRequest, HandleGetASCIIArtRequest];
         _router.SetGetHandlers(getHandlers);
 
+        System.Console.WriteLine($"Get requesst handlers: {_router.GetRequestHandlers!.Count}");
         System.Console.WriteLine("Started listening");
 
         await Task.Delay(Timeout.Infinite);
@@ -73,7 +74,6 @@ public class Server
                 break;
             }
         }
-        
     }
 
     public async Task HandleClientRequests(HHTPClient client)
@@ -116,8 +116,9 @@ public class Server
 
     public async void HandleGetCurrentTimeRequest(Packet packet, HHTPClient clientConnection)
     {
-        CurrentTimeMessage response = new(DateTime.Now);       
+        CurrentTimeMessage response = new(DateTime.Now);
         bool success = await TrySendMessage<CurrentTimeMessage>(response, packet, clientConnection);
+        if(success) System.Console.WriteLine($"Get time request handled successfully");
     }
     public async Task<bool> TrySendMessage<T>(T message, Packet packet, HHTPClient client)
         where T: BaseMessage
@@ -150,7 +151,8 @@ public class Server
     public async void HandleGetASCIIArtRequest(Packet packet, HHTPClient client)
     {
         ASCIIArtMessage message = new("AAAAAA",ASCIIArt.GetArtString());
-        bool success = await TrySendMessage<ASCIIArtMessage>(message, packet, client);   
+        bool success = await TrySendMessage<ASCIIArtMessage>(message, packet, client);
+        if(success) System.Console.WriteLine($"Get ascii art request handled successfully");
     }
 
     public async void HandleGetRandomNumberRequest(Packet packet, HHTPClient client)
@@ -158,5 +160,6 @@ public class Server
         var rng = new Random();
         RandomNumberMessage message = new(rng.Next());
         bool success = await TrySendMessage<RandomNumberMessage>(message, packet, client);
+        if(success) System.Console.WriteLine($"Get rng request handled successfully");
     }
 }
