@@ -53,7 +53,18 @@ public class Client
                         
                         CurrentTimeMessage timeRequest = new();
                         await hhtpClient.SendMessage<CurrentTimeMessage>(timeRequest, StatusCode.Ok, ProtocolMethod.GET, 1);
-                        
+                        Packet timeResponsePacket = await hhtpClient.ReceivePacket();
+                            if (timeResponsePacket.Header.StatusCode == StatusCode.Ok)
+                                {
+                                if (timeResponsePacket.TryExtractMessageFromPacket<CurrentTimeMessage>(out var timeResponseMessage))
+                                {
+                                    Console.WriteLine($"Server time: {timeResponseMessage.CurrentTime}");
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Failed to extract time response message.");
+                                }
+                            }
                     }
                     else
                     {
