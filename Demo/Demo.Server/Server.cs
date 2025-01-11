@@ -22,6 +22,7 @@ public class Server
     {
         _listener = new();
         _router = new();
+        _clientTokens = new();
     }
     public async Task Run()
     {

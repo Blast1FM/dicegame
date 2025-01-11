@@ -7,4 +7,5 @@ public class SessionTokenMessage : BaseMessage
     {
         SessionToken = sessionToken;
     }
+    public SessionTokenMessage(){}
 }
